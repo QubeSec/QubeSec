@@ -4,7 +4,8 @@ WORKDIR /home/qubesec
 
 # Install dependencies
 RUN apt update && \
-    apt install -y build-essential cmake libssl-dev
+    apt install -y build-essential cmake libssl-dev && \
+    apt clean
 
 # Get liboqs
 RUN git clone --depth 1 --branch main https://github.com/open-quantum-safe/liboqs
