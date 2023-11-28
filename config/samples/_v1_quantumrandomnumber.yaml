@@ -10,3 +10,4 @@ metadata:
   name: quantumrandomnumber-sample
 spec:
   # TODO(user): Add fields here
+  bytes: 32

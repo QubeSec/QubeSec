@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: qrng
+  name: qrng
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qrng
+  template:
+    metadata:
+      labels:
+        app: qrng
+    spec:
+      containers:
+      - image: golang:1.21.4-alpine
+        name: qrng
+        command: ["go", "run", "main.go"]
+        volumeMounts:
+        - name: qrng-volume
+          subPath: main.go
+          mountPath: /go/main.go
+        - name: quantumrandomnumber-sample-volume
+          subPath: quantumrandomnumber
+          mountPath: /go/quantumrandomnumber
+      volumes:
+      - name: qrng-volume
+        configMap:
+          name: qrng-config
+      - name: quantumrandomnumber-sample-volume
+        secret:
+          secretName: quantumrandomnumber-sample
