@@ -153,6 +153,17 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandom
 	// Set algorithm for quantum random number
 	oqsrand.RandomBytesSwitchAlgorithm(quantumrandomnumber.Spec.Algorithm)
 
+	// if Bytes is not set, set it to 32
+	if quantumrandomnumber.Spec.Bytes == 0 {
+		quantumrandomnumber.Spec.Bytes = 32
+		r.Update(ctx, quantumrandomnumber)
+	}
+
+	if quantumrandomnumber.Spec.Algorithm == "" {
+		quantumrandomnumber.Spec.Algorithm = "NIST-KAT"
+		r.Update(ctx, quantumrandomnumber)
+	}
+
 	// Generate quantum random number
 	randomNumber := oqsrand.RandomBytes(quantumrandomnumber.Spec.Bytes)
 
