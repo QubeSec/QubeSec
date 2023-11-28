@@ -122,7 +122,8 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 	} else {
 
 		// If Secret exists, compair the desired state of bytes
-		if quantumrandomnumber.Status.Bytes != quantumrandomnumber.Spec.Bytes {
+		if quantumrandomnumber.Status.Bytes != quantumrandomnumber.Spec.Bytes ||
+			quantumrandomnumber.Status.Algorithm != quantumrandomnumber.Spec.Algorithm {
 
 			secret := r.GenerateRandomNumberSecret(quantumrandomnumber, ctx)
 
@@ -148,6 +149,9 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandomnumber *qubeseciov1.QuantumRandomNumber, ctx context.Context) corev1.Secret {
 	// Setup logger
 	log := log.FromContext(ctx)
+
+	// Set algorithm for quantum random number
+	oqsrand.RandomBytesSwitchAlgorithm(quantumrandomnumber.Spec.Algorithm)
 
 	// Generate quantum random number
 	randomNumber := oqsrand.RandomBytes(quantumrandomnumber.Spec.Bytes)
@@ -181,6 +185,7 @@ func (r *QuantumRandomNumberReconciler) UpdateStatus(quantumrandomnumber *qubese
 
 	// Update status of quantumrandomnumber to reflect the number of bytes of key material generated
 	quantumrandomnumber.Status.Bytes = quantumrandomnumber.Spec.Bytes
+	quantumrandomnumber.Status.Algorithm = quantumrandomnumber.Spec.Algorithm
 	err := r.Status().Update(ctx, quantumrandomnumber)
 	if err != nil {
 		return err

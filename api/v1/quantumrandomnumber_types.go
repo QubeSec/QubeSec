@@ -29,20 +29,23 @@ type QuantumRandomNumberSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of QuantumRandomNumber. Edit quantumrandomnumber_types.go to remove/update
-	Bytes int `json:"bytes,omitempty"`
+	Bytes     int    `json:"bytes,omitempty"`
+	Algorithm string `json:"algorithm,omitempty"`
 }
 
 // QuantumRandomNumberStatus defines the observed state of QuantumRandomNumber
 type QuantumRandomNumberStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Bytes int `json:"bytes,omitempty"`
+	Bytes     int    `json:"bytes,omitempty"`
+	Algorithm string `json:"algorithm,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 //+kubebuilder:printcolumn:name="Bytes",type=integer,JSONPath=`.spec.bytes`
+//+kubebuilder:printcolumn:name="Algorithm",type=string,JSONPath=`.spec.algorithm`
 
 // QuantumRandomNumber is the Schema for the quantumrandomnumbers API
 type QuantumRandomNumber struct {

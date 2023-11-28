@@ -21,6 +21,9 @@ spec:
     - jsonPath: .spec.bytes
       name: Bytes
       type: integer
+    - jsonPath: .spec.algorithm
+      name: Algorithm
+      type: string
     name: v1
     schema:
       openAPIV3Schema:
@@ -42,6 +45,8 @@ spec:
           spec:
             description: QuantumRandomNumberSpec defines the desired state of QuantumRandomNumber
             properties:
+              algorithm:
+                type: string
               bytes:
                 description: Foo is an example field of QuantumRandomNumber. Edit
                   quantumrandomnumber_types.go to remove/update
@@ -50,6 +55,8 @@ spec:
           status:
             description: QuantumRandomNumberStatus defines the observed state of QuantumRandomNumber
             properties:
+              algorithm:
+                type: string
               bytes:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                   of cluster Important: Run "make" to regenerate code after modifying
