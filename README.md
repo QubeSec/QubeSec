@@ -11,6 +11,12 @@ Create a new API:
 ```bash
 kubebuilder create api \
   --version v1 \
+  --kind QuantumRandomNumber \
+  --resource \
+  --controller
+
+kubebuilder create api \
+  --version v1 \
   --kind KeyRequest \
   --resource \
   --controller

@@ -1,0 +1,12 @@
+apiVersion: qubesec.io/v1
+kind: QuantumRandomNumber
+metadata:
+  labels:
+    app.kubernetes.io/name: quantumrandomnumber
+    app.kubernetes.io/instance: quantumrandomnumber-sample
+    app.kubernetes.io/part-of: qubesec
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: qubesec
+  name: quantumrandomnumber-sample
+spec:
+  # TODO(user): Add fields here
