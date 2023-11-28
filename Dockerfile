@@ -1,6 +1,6 @@
 FROM golang:1.21
 
-WORKDIR /home/oqs
+WORKDIR /home/qubesec
 
 # Install dependencies
 RUN apt update && \
