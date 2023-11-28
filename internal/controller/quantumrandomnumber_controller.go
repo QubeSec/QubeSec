@@ -115,7 +115,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 		log.Info("Created Secret")
 
 		if err := r.UpdateStatus(quantumrandomnumber, ctx); err != nil {
-			log.Error(err, "Failed to Update Status")
+			log.Error(err, "Create: Failed to Update Status")
 			return err
 		}
 
@@ -135,7 +135,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 			log.Info("Updated Secret")
 
 			if err := r.UpdateStatus(quantumrandomnumber, ctx); err != nil {
-				log.Error(err, "Failed to Update Status")
+				log.Error(err, "Update: Failed to Update Status")
 				return err
 			}
 

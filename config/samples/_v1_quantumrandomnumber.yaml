@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/created-by: qubesec
   name: quantumrandomnumber-sample
 spec:
-  # TODO(user): Add fields here
+  # Number of bytes to generate
   bytes: 32
-  algorithm: system
+  # Possible values are "system", "NIST-KAT", "OpenSSL"
+  algorithm: NIST-KAT
