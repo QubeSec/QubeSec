@@ -53,15 +53,20 @@ type QuantumRandomNumberReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.3/pkg/reconcile
 func (r *QuantumRandomNumberReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// Setup logger
 	log := log.FromContext(ctx)
 
+	// Create QuantumRandomNumber object
 	quantumrandomnumber := &qubeseciov1.QuantumRandomNumber{}
+
+	// Get QuantumRandomNumber object
 	err := r.Get(ctx, req.NamespacedName, quantumrandomnumber)
 	if err != nil {
 		log.Error(err, "Failed to get QuantumRandomNumber")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// Create or Update Secret object
 	if err = r.CreateOrUpdateSecret(quantumrandomnumber, ctx); err != nil {
 		log.Error(err, "Failed to Create or Update Secret")
 		return ctrl.Result{}, err
@@ -74,13 +79,16 @@ func (r *QuantumRandomNumberReconciler) Reconcile(ctx context.Context, req ctrl.
 func (r *QuantumRandomNumberReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qubeseciov1.QuantumRandomNumber{}).
-		Owns(&corev1.Secret{}).
+		Owns(&corev1.Secret{}). // Watch Secret objects owned by QuantumRandomNumber
 		Complete(r)
 }
 
+// CreateOrUpdateSecret creates or updates a Secret object with a quantum random number
 func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber *qubeseciov1.QuantumRandomNumber, ctx context.Context) error {
+	// Setup logger
 	log := log.FromContext(ctx)
 
+	// Create Secret object
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      quantumrandomnumber.Name,
@@ -88,6 +96,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 		},
 	}
 
+	// Get Secret object
 	err := r.Get(ctx, client.ObjectKey{Namespace: secret.Namespace, Name: secret.Name}, secret)
 	if err != nil && client.IgnoreNotFound(err) != nil {
 		return err
@@ -96,77 +105,87 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 	// If Secret doesn't exist, create it
 	if err != nil {
 
-		randomNumber := oqsrand.RandomBytes(quantumrandomnumber.Spec.Bytes)
+		secret := r.GenerateRandomNumberSecret(quantumrandomnumber, ctx)
 
-		// delete this in future
-		fmt.Println(randomNumber)
-
-		newSecret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      quantumrandomnumber.Name,
-				Namespace: quantumrandomnumber.Namespace,
-			},
-			StringData: map[string]string{
-				"quantumrandomnumber": string(randomNumber),
-			},
-		}
-
-		if err := ctrl.SetControllerReference(quantumrandomnumber, newSecret, r.Scheme); err != nil {
-			log.Error(err, "Failed to Set Controller Reference")
-			return err
-		}
-
-		err = r.Create(ctx, newSecret)
+		// Create Secret
+		err = r.Create(ctx, &secret)
 		if err != nil {
 			return err
 		}
 		log.Info("Created Secret")
 
-		// Update status of quantumrandomnumber to reflect the number of bytes of key material generated
-		quantumrandomnumber.Status.Bytes = quantumrandomnumber.Spec.Bytes
-		err = r.Status().Update(ctx, quantumrandomnumber)
-		if err != nil {
+		if err := r.UpdateStatus(quantumrandomnumber, ctx); err != nil {
+			log.Error(err, "Failed to Update Status")
 			return err
 		}
-		log.Info("Updated Quantum Random Number Status")
+
 	} else {
-		// If Secret exists, update it if the number of bytes of key material generated is different
+
+		// If Secret exists, compair the desired state of bytes
 		if quantumrandomnumber.Status.Bytes != quantumrandomnumber.Spec.Bytes {
 
-			randomNumber := oqsrand.RandomBytes(quantumrandomnumber.Spec.Bytes)
+			secret := r.GenerateRandomNumberSecret(quantumrandomnumber, ctx)
 
-			// delete this in future
-			fmt.Println(randomNumber)
-
-			updatedSecret := &corev1.Secret{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      quantumrandomnumber.Name,
-					Namespace: quantumrandomnumber.Namespace,
-				},
-				StringData: map[string]string{
-					"quantumrandomnumber": string(randomNumber),
-				},
-			}
-
-			if err := ctrl.SetControllerReference(quantumrandomnumber, updatedSecret, r.Scheme); err != nil {
-				log.Error(err, "Failed to Set Controller Reference")
-				return err
-			}
-
-			err = r.Update(ctx, updatedSecret)
+			// Update Secret
+			err = r.Update(ctx, &secret)
 			if err != nil {
 				return err
 			}
 			log.Info("Updated Secret")
 
-			quantumrandomnumber.Status.Bytes = quantumrandomnumber.Spec.Bytes
-			err = r.Status().Update(ctx, quantumrandomnumber)
-			if err != nil {
+			if err := r.UpdateStatus(quantumrandomnumber, ctx); err != nil {
+				log.Error(err, "Failed to Update Status")
 				return err
 			}
-			log.Info("Updated Quantum Random Number Status")
+
 		}
 	}
+
+	return nil
+}
+
+// generate random number secret
+func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandomnumber *qubeseciov1.QuantumRandomNumber, ctx context.Context) corev1.Secret {
+	// Setup logger
+	log := log.FromContext(ctx)
+
+	// Generate quantum random number
+	randomNumber := oqsrand.RandomBytes(quantumrandomnumber.Spec.Bytes)
+
+	// delete this in future
+	fmt.Println(randomNumber)
+
+	// Create Secret object with quantum random number
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      quantumrandomnumber.Name,
+			Namespace: quantumrandomnumber.Namespace,
+		},
+		StringData: map[string]string{
+			"quantumrandomnumber": string(randomNumber),
+		},
+	}
+
+	// Set owner reference to QuantumRandomNumber for Secret
+	if err := ctrl.SetControllerReference(quantumrandomnumber, secret, r.Scheme); err != nil {
+		log.Error(err, "Failed to Set Controller Reference")
+	}
+
+	return *secret
+}
+
+// Update Status of QuantumRandomNumber
+func (r *QuantumRandomNumberReconciler) UpdateStatus(quantumrandomnumber *qubeseciov1.QuantumRandomNumber, ctx context.Context) error {
+	// Setup logger
+	log := log.FromContext(ctx)
+
+	// Update status of quantumrandomnumber to reflect the number of bytes of key material generated
+	quantumrandomnumber.Status.Bytes = quantumrandomnumber.Spec.Bytes
+	err := r.Status().Update(ctx, quantumrandomnumber)
+	if err != nil {
+		return err
+	}
+	log.Info("Updated Quantum Random Number Status")
 
 	return nil
 }
