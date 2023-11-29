@@ -151,9 +151,6 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandom
 	// Setup logger
 	log := log.FromContext(ctx)
 
-	// Set algorithm for quantum random number
-	oqsrand.RandomBytesSwitchAlgorithm(quantumrandomnumber.Spec.Algorithm)
-
 	// if Bytes is not set, set it to 32
 	if quantumrandomnumber.Spec.Bytes == 0 {
 		quantumrandomnumber.Spec.Bytes = 32
@@ -164,6 +161,9 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandom
 		quantumrandomnumber.Spec.Algorithm = "NIST-KAT"
 		r.Update(ctx, quantumrandomnumber)
 	}
+
+	// Set algorithm for quantum random number
+	oqsrand.RandomBytesSwitchAlgorithm(quantumrandomnumber.Spec.Algorithm)
 
 	// Generate quantum random number
 	randomNumber := oqsrand.RandomBytes(quantumrandomnumber.Spec.Bytes)

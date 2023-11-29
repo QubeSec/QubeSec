@@ -13,3 +13,5 @@ spec:
   bytes: 32
   # Possible values are "system", "NIST-KAT", "OpenSSL"
   algorithm: NIST-KAT
+
+  # seed: 
