@@ -157,9 +157,24 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandom
 		r.Update(ctx, quantumrandomnumber)
 	}
 
+	// if Algorithm is not set, set it to NIST-KAT
 	if quantumrandomnumber.Spec.Algorithm == "" {
 		quantumrandomnumber.Spec.Algorithm = "NIST-KAT"
 		r.Update(ctx, quantumrandomnumber)
+	}
+
+	// if algorithm is NIST-KAT and seed is set, then set seed
+	if quantumrandomnumber.Spec.Algorithm == "NIST-KAT" {
+		if quantumrandomnumber.Spec.Seed != "" {
+			fmt.Println("Inserting seed for NIST-KAT")
+			var entropySeed [48]byte
+			for i := 0; i < 48; i++ {
+				entropySeed[i] = byte(i)
+			}
+			// delete this in future
+			fmt.Println([]byte(quantumrandomnumber.Spec.Seed))
+			oqsrand.RandomBytesNistKatInit256bit(entropySeed, []byte(quantumrandomnumber.Spec.Seed))
+		}
 	}
 
 	// Set algorithm for quantum random number

@@ -31,6 +31,7 @@ type QuantumRandomNumberSpec struct {
 	// Foo is an example field of QuantumRandomNumber. Edit quantumrandomnumber_types.go to remove/update
 	Bytes     int    `json:"bytes,omitempty"`
 	Algorithm string `json:"algorithm,omitempty"`
+	Seed      string `json:"seed,omitempty"`
 }
 
 // QuantumRandomNumberStatus defines the observed state of QuantumRandomNumber

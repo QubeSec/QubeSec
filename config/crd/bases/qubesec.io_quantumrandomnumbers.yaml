@@ -51,6 +51,8 @@ spec:
                 description: Foo is an example field of QuantumRandomNumber. Edit
                   quantumrandomnumber_types.go to remove/update
                 type: integer
+              seed:
+                type: string
             type: object
           status:
             description: QuantumRandomNumberStatus defines the observed state of QuantumRandomNumber

@@ -13,5 +13,5 @@ spec:
   bytes: 32
   # Possible values are "system", "NIST-KAT", "OpenSSL"
   algorithm: NIST-KAT
-
-  # seed: 
+  # echo -n "SuperSecretSeed" | base64
+  seed: U3VwZXJTZWNyZXRTZWVk
