@@ -40,13 +40,15 @@ type QuantumRandomNumberStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 	Bytes     int    `json:"bytes,omitempty"`
 	Algorithm string `json:"algorithm,omitempty"`
+	Entropy   string `json:"entropy,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
-//+kubebuilder:printcolumn:name="Bytes",type=integer,JSONPath=`.spec.bytes`
-//+kubebuilder:printcolumn:name="Algorithm",type=string,JSONPath=`.spec.algorithm`
+//+kubebuilder:printcolumn:name="Bytes",type=integer,JSONPath=`.status.bytes`
+//+kubebuilder:printcolumn:name="Algorithm",type=string,JSONPath=`.status.algorithm`
+//+kubebuilder:printcolumn:name="Entropy",type=string,JSONPath=`.status.entropy`
 
 // QuantumRandomNumber is the Schema for the quantumrandomnumbers API
 type QuantumRandomNumber struct {

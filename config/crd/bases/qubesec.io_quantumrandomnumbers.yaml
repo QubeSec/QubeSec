@@ -18,11 +18,14 @@ spec:
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
-    - jsonPath: .spec.bytes
+    - jsonPath: .status.bytes
       name: Bytes
       type: integer
-    - jsonPath: .spec.algorithm
+    - jsonPath: .status.algorithm
       name: Algorithm
+      type: string
+    - jsonPath: .status.entropy
+      name: Entropy
       type: string
     name: v1
     schema:
@@ -64,6 +67,8 @@ spec:
                   of cluster Important: Run "make" to regenerate code after modifying
                   this file'
                 type: integer
+              entropy:
+                type: string
             type: object
         type: object
     served: true

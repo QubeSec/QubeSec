@@ -30,6 +30,7 @@ import (
 	qubeseciov1 "github.com/QubeSec/QubeSec/api/v1"
 	oqsrand "github.com/open-quantum-safe/liboqs-go/oqs/rand"
 
+	"github.com/QubeSec/QubeSec/internal/shannonentropy"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -106,7 +107,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 	// If Secret doesn't exist, create it
 	if err != nil {
 
-		secret := r.GenerateRandomNumberSecret(quantumrandomnumber, ctx)
+		secret, shannonEntropy := r.GenerateRandomNumberSecret(quantumrandomnumber, ctx)
 
 		// Create Secret
 		err = r.Create(ctx, &secret)
@@ -115,7 +116,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 		}
 		log.Info("Created Secret")
 
-		if err := r.UpdateStatus(quantumrandomnumber, ctx); err != nil {
+		if err := r.UpdateStatus(quantumrandomnumber, ctx, shannonEntropy); err != nil {
 			log.Error(err, "Create: Failed to Update Status")
 			return err
 		}
@@ -126,7 +127,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 		if quantumrandomnumber.Status.Bytes != quantumrandomnumber.Spec.Bytes ||
 			quantumrandomnumber.Status.Algorithm != quantumrandomnumber.Spec.Algorithm {
 
-			secret := r.GenerateRandomNumberSecret(quantumrandomnumber, ctx)
+			secret, shannonEntropy := r.GenerateRandomNumberSecret(quantumrandomnumber, ctx)
 
 			// Update Secret
 			err = r.Update(ctx, &secret)
@@ -135,7 +136,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 			}
 			log.Info("Updated Secret")
 
-			if err := r.UpdateStatus(quantumrandomnumber, ctx); err != nil {
+			if err := r.UpdateStatus(quantumrandomnumber, ctx, shannonEntropy); err != nil {
 				log.Error(err, "Update: Failed to Update Status")
 				return err
 			}
@@ -147,7 +148,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 }
 
 // generate random number secret
-func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandomnumber *qubeseciov1.QuantumRandomNumber, ctx context.Context) corev1.Secret {
+func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandomnumber *qubeseciov1.QuantumRandomNumber, ctx context.Context) (corev1.Secret, float64) {
 	// Setup logger
 	log := log.FromContext(ctx)
 
@@ -163,6 +164,9 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandom
 		r.Update(ctx, quantumrandomnumber)
 	}
 
+	// Set algorithm for quantum random number
+	oqsrand.RandomBytesSwitchAlgorithm(quantumrandomnumber.Spec.Algorithm)
+
 	// if algorithm is NIST-KAT and seed is set, then set seed
 	if quantumrandomnumber.Spec.Algorithm == "NIST-KAT" {
 		if quantumrandomnumber.Spec.Seed != "" {
@@ -171,20 +175,15 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandom
 			for i := 0; i < 48; i++ {
 				entropySeed[i] = byte(i)
 			}
-			// delete this in future
-			fmt.Println([]byte(quantumrandomnumber.Spec.Seed))
 			oqsrand.RandomBytesNistKatInit256bit(entropySeed, []byte(quantumrandomnumber.Spec.Seed))
 		}
 	}
 
-	// Set algorithm for quantum random number
-	oqsrand.RandomBytesSwitchAlgorithm(quantumrandomnumber.Spec.Algorithm)
-
 	// Generate quantum random number
 	randomNumber := oqsrand.RandomBytes(quantumrandomnumber.Spec.Bytes)
 
-	// delete this in future
-	fmt.Println(randomNumber)
+	// Calculate Shannon Entropy
+	shannonEntropy := shannonentropy.ShannonEntropy(randomNumber)
 
 	// Create Secret object with quantum random number
 	secret := &corev1.Secret{
@@ -202,17 +201,18 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandom
 		log.Error(err, "Failed to Set Controller Reference")
 	}
 
-	return *secret
+	return *secret, shannonEntropy
 }
 
 // Update Status of QuantumRandomNumber
-func (r *QuantumRandomNumberReconciler) UpdateStatus(quantumrandomnumber *qubeseciov1.QuantumRandomNumber, ctx context.Context) error {
+func (r *QuantumRandomNumberReconciler) UpdateStatus(quantumrandomnumber *qubeseciov1.QuantumRandomNumber, ctx context.Context, shannonEntropy float64) error {
 	// Setup logger
 	log := log.FromContext(ctx)
 
 	// Update status of quantumrandomnumber to reflect the number of bytes of key material generated
 	quantumrandomnumber.Status.Bytes = quantumrandomnumber.Spec.Bytes
 	quantumrandomnumber.Status.Algorithm = quantumrandomnumber.Spec.Algorithm
+	quantumrandomnumber.Status.Entropy = fmt.Sprintf("%.12f", shannonEntropy)
 	err := r.Status().Update(ctx, quantumrandomnumber)
 	if err != nil {
 		return err
