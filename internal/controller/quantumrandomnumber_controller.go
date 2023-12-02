@@ -170,7 +170,6 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandom
 	// if algorithm is NIST-KAT and seed is set, then set seed
 	if quantumrandomnumber.Spec.Algorithm == "NIST-KAT" {
 		if quantumrandomnumber.Spec.Seed != "" {
-			fmt.Println("Inserting seed for NIST-KAT")
 			var entropySeed [48]byte
 			for i := 0; i < 48; i++ {
 				entropySeed[i] = byte(i)
