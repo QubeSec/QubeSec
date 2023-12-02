@@ -15,6 +15,12 @@ kubebuilder create api \
   --resource \
   --controller
 
+kubebuilder create webhook \
+  --version v1 \
+  --kind QuantumRandomNumber \
+  --defaulting \
+  --programmatic-validation
+
 kubebuilder create api \
   --version v1 \
   --kind QuantumDigitalSignature \
@@ -35,18 +41,20 @@ kubebuilder create api \
 ```
 
 Generate the manifests:
-```
+```bash
+make generate
 make manifests
 ```
 
 Install CRDs into the Kubernetes cluster using kubectl apply:
-```
+```bash
 make install
 make uninstall
 ```
 
 Regenerate code and run against the Kubernetes cluster configured by `~/.kube/config`:
-```
+```bash
+export ENABLE_WEBHOOKS=false
 make run
 ```
 
@@ -66,8 +74,25 @@ Build the docker image:
 make docker-build docker-push
 ```
 
+Install cert-manager:
+```bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.2/cert-manager.yaml
+```
+
+Load the docker image into minikube:
+```bash
+minikube image load qubesec/qubesec:v0.1.2
+```
+
 Create a deployment:
 ```bash
 make deploy
 make undeploy
+```
+
+Generate certificates for serving the webhooks locally:
+```bash
+mkdir -p /tmp/k8s-webhook-server/serving-certs/
+cd /tmp/k8s-webhook-server/serving-certs/
+openssl req -newkey rsa:2048 -nodes -keyout tls.key -x509 -days 365 -out tls.crt
 ```
