@@ -13,6 +13,6 @@ spec:
   bytes: 32
   # Possible values are "system", "NIST-KAT", "OpenSSL"
   algorithm: NIST-KAT
-  # echo -n "SuperSecretSeed" | base64
-  # seed: U
-  seed: U3VwZXJTZWNyZXRTZWVkU3VwZXJTZWNyZXRTZWVkU3VwZXJTZWNyZXRTZWVkU3VwZXJTZWNyZXRTZWVk
+  # openssl rand -base64 35
+  # We need minimum 48 bytes for 256 bit key
+  seed: 4vlsXDJD8pxXy0WNpiz10EwlVfEDy9QkObmRbR52OxRUhjY=

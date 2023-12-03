@@ -122,9 +122,16 @@ func (r *QuantumRandomNumber) validateQuantumRandomNumberSpec() *field.Error {
 func validateSeedBytes(seed string, fldPath *field.Path) *field.Error {
 	// convert string to bytes array
 	seedBytes := []byte(seed)
+
+	// if lenght of seedBytes is 0, return nil
+	if len(seedBytes) == 0 {
+		return nil
+	}
+
 	// it should be more than 48 bytes
 	if len(seedBytes) < 48 {
-		return field.Invalid(fldPath, seed, "must be more than 48 bytes")
+		detail := fmt.Sprintf("Your seed's lenght is %d bytes, it must be more than or equale to 48 bytes", len(seedBytes))
+		return field.Invalid(fldPath, seed, detail)
 	}
 
 	return nil

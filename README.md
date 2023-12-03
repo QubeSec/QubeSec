@@ -81,7 +81,7 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 
 Load the docker image into minikube:
 ```bash
-minikube image load qubesec/qubesec:v0.1.2
+minikube image load qubesec/qubesec:v0.1.3
 ```
 
 Create a deployment:
