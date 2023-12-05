@@ -32,6 +32,7 @@ type QuantumRandomNumberSpec struct {
 	Bytes     int    `json:"bytes,omitempty"`
 	Algorithm string `json:"algorithm,omitempty"`
 	Seed      string `json:"seed,omitempty"`
+	SeedURI   string `json:"seedURI,omitempty"`
 }
 
 // QuantumRandomNumberStatus defines the observed state of QuantumRandomNumber

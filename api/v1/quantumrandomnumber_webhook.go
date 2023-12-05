@@ -17,7 +17,12 @@ limitations under the License.
 package v1
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -50,8 +55,6 @@ var _ webhook.Defaulter = &QuantumRandomNumber{}
 func (r *QuantumRandomNumber) Default() {
 	quantumrandomnumberlog.Info("default", "name", r.Name)
 
-	// TODO(user): fill in your defaulting logic.
-	fmt.Println("Default")
 	// if Bytes is not set, set it to 32
 	if r.Spec.Bytes == 0 {
 		r.Spec.Bytes = 32
@@ -60,6 +63,11 @@ func (r *QuantumRandomNumber) Default() {
 	// if Algorithm is not set, set it to NIST-KAT
 	if r.Spec.Algorithm == "" {
 		r.Spec.Algorithm = "NIST-KAT"
+	}
+
+	// if Seed is not set, set it to random
+	if r.Spec.Seed == "" && r.Spec.SeedURI != "" {
+		r.Spec.Seed = getSeedFromURI(r.Spec.SeedURI)
 	}
 
 }
@@ -74,7 +82,6 @@ func (r *QuantumRandomNumber) ValidateCreate() (admission.Warnings, error) {
 	quantumrandomnumberlog.Info("validate create", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object creation.
-	fmt.Println("ValidateCreate")
 	return nil, r.validateQuantumRandomNumber()
 }
 
@@ -117,6 +124,32 @@ func (r *QuantumRandomNumber) validateQuantumRandomNumberSpec() *field.Error {
 	return validateSeedBytes(
 		r.Spec.Seed,
 		field.NewPath("spec").Child("Seed"))
+}
+
+func getSeedFromURI(seedURI string) string {
+
+	// Get hex seed content from seedURI
+	resp, err := http.Get(seedURI)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// We Read the response body on the line below.
+	hexSeed, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Decode hex content
+	seedInBytes, err := hex.DecodeString(string(hexSeed))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Convert hex seed to base64
+	base64Seed := base64.StdEncoding.EncodeToString([]byte(seedInBytes))
+
+	return base64Seed
 }
 
 func validateSeedBytes(seed string, fldPath *field.Path) *field.Error {

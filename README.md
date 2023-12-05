@@ -9,6 +9,7 @@ kubebuilder init \
 
 Create a new API:
 ```bash
+# Implemented:
 kubebuilder create api \
   --version v1 \
   --kind QuantumRandomNumber \
@@ -21,6 +22,7 @@ kubebuilder create webhook \
   --defaulting \
   --programmatic-validation
 
+# In Discussions:
 kubebuilder create api \
   --version v1 \
   --kind QuantumDigitalSignature \
@@ -29,13 +31,13 @@ kubebuilder create api \
 
 kubebuilder create api \
   --version v1 \
-  --kind KeyRequest \
+  --kind Certificate \
   --resource \
   --controller
 
 kubebuilder create api \
   --version v1 \
-  --kind Certificate \
+  --kind KeyRequest \
   --resource \
   --controller
 ```
@@ -81,7 +83,7 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 
 Load the docker image into minikube:
 ```bash
-minikube image load qubesec/qubesec:v0.1.3
+minikube image load qubesec/qubesec:v0.1.7
 ```
 
 Create a deployment:
