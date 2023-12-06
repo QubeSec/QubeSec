@@ -54,10 +54,10 @@ type QuantumKeyPairReconciler struct {
 func (r *QuantumKeyPairReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	// Create QuantumRandomNumber object
+	// Create QuantumKeyPair object
 	quantumKeyPair := &qubeseciov1.QuantumKeyPair{}
 
-	// Get QuantumRandomNumber object
+	// Get QuantumKeyPair object
 	err := r.Get(ctx, req.NamespacedName, quantumKeyPair)
 	if err != nil {
 		log.Error(err, "Failed to get QuantumKeyPair")
@@ -125,7 +125,7 @@ func (r *QuantumKeyPairReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		},
 	}
 
-	// Set owner reference to QuantumRandomNumber for Secret
+	// Set owner reference to QuantumKeyPair for Secret
 	if err := ctrl.SetControllerReference(quantumKeyPair, secret, r.Scheme); err != nil {
 		log.Error(err, "Failed to Set Controller Reference")
 		return ctrl.Result{}, err
@@ -145,6 +145,6 @@ func (r *QuantumKeyPairReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 func (r *QuantumKeyPairReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qubeseciov1.QuantumKeyPair{}).
-		Owns(&corev1.Secret{}). // Watch Secret objects owned by QuantumRandomNumber
+		Owns(&corev1.Secret{}). // Watch Secret objects owned by QuantumKeyPair
 		Complete(r)
 }
