@@ -21,7 +21,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -64,12 +63,6 @@ func (r *QuantumRandomNumber) Default() {
 	if r.Spec.Algorithm == "" {
 		r.Spec.Algorithm = "NIST-KAT"
 	}
-
-	// if Seed is not set, set it to random
-	if r.Spec.Seed == "" && r.Spec.SeedURI != "" {
-		r.Spec.Seed = getSeedFromURI(r.Spec.SeedURI)
-	}
-
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
@@ -121,35 +114,50 @@ func (r *QuantumRandomNumber) validateQuantumRandomNumber() error {
 func (r *QuantumRandomNumber) validateQuantumRandomNumberSpec() *field.Error {
 	// The field helpers from the kubernetes API machinery help us return nicely
 	// structured validation errors.
-	return validateSeedBytes(
-		r.Spec.Seed,
-		field.NewPath("spec").Child("Seed"))
+
+	// if Seed is not set, fetch it from SeedURI
+	if r.Spec.Seed == "" && r.Spec.SeedURI != "" {
+		seed, err := getSeedFromURI(r.Spec.SeedURI, field.NewPath("spec").Child("SeedURI"))
+		if err != nil {
+			return err
+		}
+		r.Spec.Seed = seed
+	}
+
+	err := validateSeedBytes(r.Spec.Seed, field.NewPath("spec").Child("Seed"))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func getSeedFromURI(seedURI string) string {
+func getSeedFromURI(seedURI string, fldPath *field.Path) (string, *field.Error) {
 
 	// Get hex seed content from seedURI
 	resp, err := http.Get(seedURI)
 	if err != nil {
-		log.Fatalln(err)
+		detail := fmt.Sprintf("Failed to get seed from %s", seedURI)
+		return "", field.Invalid(fldPath, seedURI, detail)
 	}
 
 	// We Read the response body on the line below.
 	hexSeed, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		detail := fmt.Sprintf("Failed to read seed from %s", seedURI)
+		return "", field.Invalid(fldPath, seedURI, detail)
 	}
 
 	// Decode hex content
 	seedInBytes, err := hex.DecodeString(string(hexSeed))
 	if err != nil {
-		log.Fatalln(err)
+		detail := fmt.Sprintf("Failed to decode seed from %s", seedURI)
+		return "", field.Invalid(fldPath, seedURI, detail)
 	}
 
 	// Convert hex seed to base64
 	base64Seed := base64.StdEncoding.EncodeToString([]byte(seedInBytes))
-
-	return base64Seed
+	return base64Seed, nil
 }
 
 func validateSeedBytes(seed string, fldPath *field.Path) *field.Error {
