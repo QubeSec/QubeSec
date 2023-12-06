@@ -1,4 +1,5 @@
 ## Append samples of your project ##
 resources:
 - _v1_quantumrandomnumber.yaml
+- _v1_quantumkeypair.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

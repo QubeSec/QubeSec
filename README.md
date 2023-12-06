@@ -22,6 +22,12 @@ kubebuilder create webhook \
   --defaulting \
   --programmatic-validation
 
+kubebuilder create api \
+  --version v1 \
+  --kind QuantumKeyPair \
+  --resource \
+  --controller
+
 # In Discussions:
 kubebuilder create api \
   --version v1 \

@@ -19,6 +19,32 @@ rules:
 - apiGroups:
   - qubesec.io
   resources:
+  - quantumkeypairs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumkeypairs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumkeypairs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - qubesec.io
+  resources:
   - quantumrandomnumbers
   verbs:
   - create
