@@ -118,7 +118,7 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 		}
 
 		// Set owner reference to QuantumKeyPair for Secret
-		err := ctrl.SetControllerReference(quantumSignatureKeyPair, secret, r.Scheme)
+		err := ctrl.SetControllerReference(quantumSignatureKeyPair, newSecret, r.Scheme)
 		if err != nil {
 			log.Error(err, "Failed to Set Controller Reference")
 			return err

@@ -117,7 +117,8 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumrandomnumber
 		}
 		log.Info("Created Secret")
 
-		if err := r.UpdateStatus(quantumrandomnumber, ctx, shannonEntropy); err != nil {
+		err := r.UpdateStatus(quantumrandomnumber, ctx, shannonEntropy)
+		if err != nil {
 			log.Error(err, "Create: Failed to Update Status")
 			return err
 		}
@@ -185,7 +186,8 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumrandom
 	}
 
 	// Set owner reference to QuantumRandomNumber for Secret
-	if err := ctrl.SetControllerReference(quantumrandomnumber, secret, r.Scheme); err != nil {
+	err := ctrl.SetControllerReference(quantumrandomnumber, secret, r.Scheme)
+	if err != nil {
 		log.Error(err, "Failed to Set Controller Reference")
 	}
 
