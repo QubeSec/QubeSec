@@ -41,6 +41,7 @@ type QuantumKeyPairReconciler struct {
 //+kubebuilder:rbac:groups=qubesec.io,resources=quantumkeypairs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=qubesec.io,resources=quantumkeypairs/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=qubesec.io,resources=quantumkeypairs/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
