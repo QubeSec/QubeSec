@@ -69,7 +69,8 @@ func (r *QuantumRandomNumberReconciler) Reconcile(ctx context.Context, req ctrl.
 	}
 
 	// Create or Update Secret object
-	if err = r.CreateOrUpdateSecret(quantumrandomnumber, ctx); err != nil {
+	err = r.CreateOrUpdateSecret(quantumrandomnumber, ctx)
+	if err != nil {
 		log.Error(err, "Failed to Create or Update Secret")
 		return ctrl.Result{}, err
 	}

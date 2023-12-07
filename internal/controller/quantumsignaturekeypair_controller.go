@@ -17,9 +17,7 @@ limitations under the License.
 package controller
 
 import (
-	"bytes"
 	"context"
-	"encoding/pem"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	qubeseciov1 "github.com/QubeSec/QubeSec/api/v1"
-	"github.com/open-quantum-safe/liboqs-go/oqs"
+	"github.com/QubeSec/QubeSec/internal/keypair"
 )
 
 // QuantumSignatureKeyPairReconciler reconciles a QuantumSignatureKeyPair object
@@ -65,77 +63,10 @@ func (r *QuantumSignatureKeyPairReconciler) Reconcile(ctx context.Context, req c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	quantumSignatureKeys := oqs.Signature{}
-	defer quantumSignatureKeys.Clean() // clean up even in case of panic
-
-	quantumSignatureAlgorithm := quantumSignatureKeyPair.Spec.Algorithm
-
-	// Initialize liboqs-go
-	if err := quantumSignatureKeys.Init(quantumSignatureAlgorithm, nil); err != nil {
-		log.Error(err, "Failed to initialize liboqs-go")
-		return ctrl.Result{}, err
-	}
-
-	// Generate key pair
-	quantumSignaturePublicKey, err := quantumSignatureKeys.GenerateKeyPair()
+	// Create or Update Secret
+	err = r.CreateOrUpdateSecret(quantumSignatureKeyPair, ctx)
 	if err != nil {
-		log.Error(err, "Failed to generate key pair")
-		return ctrl.Result{}, err
-	}
-
-	// Generate PEM block
-	publicKeyBlock := &pem.Block{
-		Type:  quantumSignatureAlgorithm + " PUBLIC KEY",
-		Bytes: quantumSignaturePublicKey,
-	}
-
-	// Encode public key
-	var publicKeyRow bytes.Buffer
-	err = pem.Encode(&publicKeyRow, publicKeyBlock)
-	if err != nil {
-		log.Error(err, "Failed to encode public key")
-		return ctrl.Result{}, err
-	}
-
-	// Export private key
-	quantumPrivateKey := quantumSignatureKeys.ExportSecretKey()
-
-	// Generate PEM block
-	privateKeyBlock := &pem.Block{
-		Type:  quantumSignatureAlgorithm + " SECRET KEY",
-		Bytes: quantumPrivateKey,
-	}
-
-	// Encode private key
-	var privateKeyRow bytes.Buffer
-	err = pem.Encode(&privateKeyRow, privateKeyBlock)
-	if err != nil {
-		log.Error(err, "Failed to encode private key")
-		return ctrl.Result{}, err
-	}
-
-	// Create Secret object
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      quantumSignatureKeyPair.Name,
-			Namespace: quantumSignatureKeyPair.Namespace,
-		},
-		StringData: map[string]string{
-			"quantumPublicKey":  publicKeyRow.String(),
-			"quantumPrivateKey": privateKeyRow.String(),
-		},
-	}
-
-	// Set owner reference to QuantumKeyPair for Secret
-	if err := ctrl.SetControllerReference(quantumSignatureKeyPair, secret, r.Scheme); err != nil {
-		log.Error(err, "Failed to Set Controller Reference")
-		return ctrl.Result{}, err
-	}
-
-	// Create Secret
-	err = r.Create(ctx, secret)
-	if err != nil {
-		log.Error(err, "Failed to Create Secret")
+		log.Error(err, "Failed to Create or Update Secret")
 		return ctrl.Result{}, err
 	}
 
@@ -148,4 +79,59 @@ func (r *QuantumSignatureKeyPairReconciler) SetupWithManager(mgr ctrl.Manager) e
 		For(&qubeseciov1.QuantumSignatureKeyPair{}).
 		Owns(&corev1.Secret{}). // Watch Secret objects owned by QuantumKeyPair
 		Complete(r)
+}
+
+func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatureKeyPair *qubeseciov1.QuantumSignatureKeyPair, ctx context.Context) error {
+	// Setup logger
+	log := log.FromContext(ctx)
+
+	// Create Secret object
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      quantumSignatureKeyPair.Name,
+			Namespace: quantumSignatureKeyPair.Namespace,
+		},
+	}
+
+	// Get Secret object
+	err := r.Get(ctx, client.ObjectKey{Namespace: secret.Namespace, Name: secret.Name}, secret)
+	if err != nil && client.IgnoreNotFound(err) != nil {
+		return err
+	}
+
+	// If Secret doesn't exist, create it
+	if err != nil {
+
+		// Generate key pair
+		publicKey, privateKey := keypair.GenerateSIGKeyPair(quantumSignatureKeyPair.Spec.Algorithm, ctx)
+
+		// Create Secret object
+		newSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      quantumSignatureKeyPair.Name,
+				Namespace: quantumSignatureKeyPair.Namespace,
+			},
+			StringData: map[string]string{
+				"quantumPublicKey":  publicKey,
+				"quantumPrivateKey": privateKey,
+			},
+		}
+
+		// Set owner reference to QuantumKeyPair for Secret
+		err := ctrl.SetControllerReference(quantumSignatureKeyPair, secret, r.Scheme)
+		if err != nil {
+			log.Error(err, "Failed to Set Controller Reference")
+			return err
+		}
+
+		// Create Secret
+		err = r.Create(ctx, newSecret)
+		if err != nil {
+			log.Error(err, "Failed to Create Secret")
+			return err
+		}
+		log.Info("Created Secret")
+	}
+
+	return nil
 }
