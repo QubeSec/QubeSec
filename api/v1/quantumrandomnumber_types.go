@@ -45,6 +45,7 @@ type QuantumRandomNumberStatus struct {
 }
 
 //+kubebuilder:object:root=true
+//+kubebuilder:resource:shortName=qrn;qrng
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 //+kubebuilder:printcolumn:name="Bytes",type=integer,JSONPath=`.status.bytes`

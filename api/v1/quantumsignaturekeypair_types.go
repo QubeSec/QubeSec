@@ -39,6 +39,7 @@ type QuantumSignatureKeyPairStatus struct {
 }
 
 //+kubebuilder:object:root=true
+//+kubebuilder:resource:shortName=qskp
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 //+kubebuilder:printcolumn:name="Algorithm",type=string,JSONPath=`.spec.algorithm`

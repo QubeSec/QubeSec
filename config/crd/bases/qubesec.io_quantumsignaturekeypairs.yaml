@@ -11,6 +11,8 @@ spec:
     kind: QuantumSignatureKeyPair
     listKind: QuantumSignatureKeyPairList
     plural: quantumsignaturekeypairs
+    shortNames:
+    - qskp
     singular: quantumsignaturekeypair
   scope: Namespaced
   versions:

@@ -11,6 +11,9 @@ spec:
     kind: QuantumRandomNumber
     listKind: QuantumRandomNumberList
     plural: quantumrandomnumbers
+    shortNames:
+    - qrn
+    - qrng
     singular: quantumrandomnumber
   scope: Namespaced
   versions:

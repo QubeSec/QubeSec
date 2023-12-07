@@ -11,6 +11,8 @@ spec:
     kind: QuantumKeyPair
     listKind: QuantumKeyPairList
     plural: quantumkeypairs
+    shortNames:
+    - qkp
     singular: quantumkeypair
   scope: Namespaced
   versions:
