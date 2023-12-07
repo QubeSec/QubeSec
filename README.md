@@ -28,6 +28,12 @@ kubebuilder create api \
   --resource \
   --controller
 
+kubebuilder create api \
+  --version v1 \
+  --kind QuantumSignatureKeyPair \
+  --resource \
+  --controller
+
 # In Discussions:
 kubebuilder create api \
   --version v1 \

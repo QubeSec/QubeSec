@@ -1,0 +1,12 @@
+apiVersion: qubesec.io/v1
+kind: QuantumSignatureKeyPair
+metadata:
+  labels:
+    app.kubernetes.io/name: quantumsignaturekeypair
+    app.kubernetes.io/instance: quantumsignaturekeypair-sample
+    app.kubernetes.io/part-of: qubesec
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: qubesec
+  name: quantumsignaturekeypair-sample
+spec:
+  algorithm: Dilithium2

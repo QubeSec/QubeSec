@@ -68,3 +68,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumsignaturekeypairs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumsignaturekeypairs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumsignaturekeypairs/status
+  verbs:
+  - get
+  - patch
+  - update

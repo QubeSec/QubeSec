@@ -1,0 +1,27 @@
+# permissions for end users to view quantumsignaturekeypairs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: quantumsignaturekeypair-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: qubesec
+    app.kubernetes.io/part-of: qubesec
+    app.kubernetes.io/managed-by: kustomize
+  name: quantumsignaturekeypair-viewer-role
+rules:
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumsignaturekeypairs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumsignaturekeypairs/status
+  verbs:
+  - get
