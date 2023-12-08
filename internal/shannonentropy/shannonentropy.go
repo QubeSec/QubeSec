@@ -10,9 +10,7 @@ func ShannonEntropy(data []byte) float64 {
 	binaryString := bytesToBinary(data)
 
 	// Step 2: Calculate entropy
-	entropy := calculateEntropy(binaryString)
-
-	return entropy
+	return calculateEntropy(binaryString)
 }
 
 func bytesToBinary(data []byte) string {
