@@ -9,4 +9,4 @@ metadata:
     app.kubernetes.io/created-by: qubesec
   name: quantumsignaturekeypair-sample
 spec:
-  algorithm: Dilithium2
+  algorithm: Dilithium5
