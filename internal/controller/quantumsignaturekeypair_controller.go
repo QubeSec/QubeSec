@@ -77,7 +77,7 @@ func (r *QuantumSignatureKeyPairReconciler) Reconcile(ctx context.Context, req c
 func (r *QuantumSignatureKeyPairReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qubeseciov1.QuantumSignatureKeyPair{}).
-		Owns(&corev1.Secret{}). // Watch Secret objects owned by QuantumKeyPair
+		Owns(&corev1.Secret{}). // Watch Secret objects owned by QuantumKEMKeyPair
 		Complete(r)
 }
 
@@ -117,7 +117,7 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 			},
 		}
 
-		// Set owner reference to QuantumKeyPair for Secret
+		// Set owner reference to QuantumKEMKeyPair for Secret
 		err := ctrl.SetControllerReference(quantumSignatureKeyPair, newSecret, r.Scheme)
 		if err != nil {
 			log.Error(err, "Failed to Set Controller Reference")

@@ -24,7 +24,7 @@ kubebuilder create webhook \
 
 kubebuilder create api \
   --version v1 \
-  --kind QuantumKeyPair \
+  --kind QuantumKEMKeyPair \
   --resource \
   --controller
 

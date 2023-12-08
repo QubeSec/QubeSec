@@ -30,41 +30,41 @@ import (
 	"github.com/QubeSec/QubeSec/internal/keypair"
 )
 
-// QuantumKeyPairReconciler reconciles a QuantumKeyPair object
-type QuantumKeyPairReconciler struct {
+// QuantumKEMKeyPairReconciler reconciles a QuantumKEMKeyPair object
+type QuantumKEMKeyPairReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=qubesec.io,resources=quantumkeypairs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=qubesec.io,resources=quantumkeypairs/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=qubesec.io,resources=quantumkeypairs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=qubesec.io,resources=quantumkemkeypairs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=qubesec.io,resources=quantumkemkeypairs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=qubesec.io,resources=quantumkemkeypairs/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the QuantumKeyPair object against the actual cluster state, and then
+// the QuantumKEMKeyPair object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.3/pkg/reconcile
-func (r *QuantumKeyPairReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *QuantumKEMKeyPairReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	// Create QuantumKeyPair object
-	quantumKeyPair := &qubeseciov1.QuantumKeyPair{}
+	// Create QuantumKEMKeyPair object
+	quantumKEMKeyPair := &qubeseciov1.QuantumKEMKeyPair{}
 
-	// Get QuantumKeyPair object
-	err := r.Get(ctx, req.NamespacedName, quantumKeyPair)
+	// Get QuantumKEMKeyPair object
+	err := r.Get(ctx, req.NamespacedName, quantumKEMKeyPair)
 	if err != nil {
-		log.Error(err, "Failed to get QuantumKeyPair")
+		log.Error(err, "Failed to get QuantumKEMKeyPair")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Create or Update Secret
-	err = r.CreateOrUpdateSecret(quantumKeyPair, ctx)
+	err = r.CreateOrUpdateSecret(quantumKEMKeyPair, ctx)
 	if err != nil {
 		log.Error(err, "Failed to Create or Update Secret")
 		return ctrl.Result{}, err
@@ -74,22 +74,22 @@ func (r *QuantumKeyPairReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *QuantumKeyPairReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *QuantumKEMKeyPairReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&qubeseciov1.QuantumKeyPair{}).
-		Owns(&corev1.Secret{}). // Watch Secret objects owned by QuantumKeyPair
+		For(&qubeseciov1.QuantumKEMKeyPair{}).
+		Owns(&corev1.Secret{}). // Watch Secret objects owned by QuantumKEMKeyPair
 		Complete(r)
 }
 
-func (r *QuantumKeyPairReconciler) CreateOrUpdateSecret(quantumKeyPair *qubeseciov1.QuantumKeyPair, ctx context.Context) error {
+func (r *QuantumKEMKeyPairReconciler) CreateOrUpdateSecret(quantumKEMKeyPair *qubeseciov1.QuantumKEMKeyPair, ctx context.Context) error {
 	// Setup logger
 	log := log.FromContext(ctx)
 
 	// Create Secret object
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      quantumKeyPair.Name,
-			Namespace: quantumKeyPair.Namespace,
+			Name:      quantumKEMKeyPair.Name,
+			Namespace: quantumKEMKeyPair.Namespace,
 		},
 	}
 
@@ -103,13 +103,13 @@ func (r *QuantumKeyPairReconciler) CreateOrUpdateSecret(quantumKeyPair *qubeseci
 	if err != nil {
 
 		// Generate key pair
-		publicKey, privateKey := keypair.GenerateKEMKeyPair(quantumKeyPair.Spec.Algorithm, ctx)
+		publicKey, privateKey := keypair.GenerateKEMKeyPair(quantumKEMKeyPair.Spec.Algorithm, ctx)
 
 		// Create Secret object
 		newSecret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      quantumKeyPair.Name,
-				Namespace: quantumKeyPair.Namespace,
+				Name:      quantumKEMKeyPair.Name,
+				Namespace: quantumKEMKeyPair.Namespace,
 			},
 			StringData: map[string]string{
 				"quantumPublicKey":  publicKey,
@@ -117,8 +117,8 @@ func (r *QuantumKeyPairReconciler) CreateOrUpdateSecret(quantumKeyPair *qubeseci
 			},
 		}
 
-		// Set owner reference to QuantumKeyPair for Secret
-		err := ctrl.SetControllerReference(quantumKeyPair, newSecret, r.Scheme)
+		// Set owner reference to QuantumKEMKeyPair for Secret
+		err := ctrl.SetControllerReference(quantumKEMKeyPair, newSecret, r.Scheme)
 		if err != nil {
 			log.Error(err, "Failed to Set Controller Reference")
 			return err

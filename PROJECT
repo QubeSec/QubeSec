@@ -25,7 +25,7 @@ resources:
     namespaced: true
   controller: true
   domain: qubesec.io
-  kind: QuantumKeyPair
+  kind: QuantumKEMKeyPair
   path: github.com/QubeSec/QubeSec/api/v1
   version: v1
 - api:

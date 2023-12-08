@@ -19,7 +19,7 @@ rules:
 - apiGroups:
   - qubesec.io
   resources:
-  - quantumkeypairs
+  - quantumkemkeypairs
   verbs:
   - create
   - delete
@@ -31,13 +31,13 @@ rules:
 - apiGroups:
   - qubesec.io
   resources:
-  - quantumkeypairs/finalizers
+  - quantumkemkeypairs/finalizers
   verbs:
   - update
 - apiGroups:
   - qubesec.io
   resources:
-  - quantumkeypairs/status
+  - quantumkemkeypairs/status
   verbs:
   - get
   - patch

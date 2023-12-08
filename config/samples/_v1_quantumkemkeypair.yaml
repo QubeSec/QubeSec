@@ -1,12 +1,12 @@
 apiVersion: qubesec.io/v1
-kind: QuantumKeyPair
+kind: QuantumKEMKeyPair
 metadata:
   labels:
-    app.kubernetes.io/name: quantumkeypair
-    app.kubernetes.io/instance: quantumkeypair-sample
+    app.kubernetes.io/name: quantumkemkeypair
+    app.kubernetes.io/instance: quantumkemkeypair-sample
     app.kubernetes.io/part-of: qubesec
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: qubesec
-  name: quantumkeypair-sample
+  name: quantumkemkeypair-sample
 spec:
   algorithm: Kyber1024

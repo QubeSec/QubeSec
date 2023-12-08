@@ -1,27 +1,31 @@
-# permissions for end users to view quantumkeypairs.
+# permissions for end users to edit quantumkemkeypairs.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: quantumkeypair-viewer-role
+    app.kubernetes.io/instance: quantumkemkeypair-editor-role
     app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: qubesec
     app.kubernetes.io/part-of: qubesec
     app.kubernetes.io/managed-by: kustomize
-  name: quantumkeypair-viewer-role
+  name: quantumkemkeypair-editor-role
 rules:
 - apiGroups:
   - qubesec.io
   resources:
-  - quantumkeypairs
+  - quantumkemkeypairs
   verbs:
+  - create
+  - delete
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - qubesec.io
   resources:
-  - quantumkeypairs/status
+  - quantumkemkeypairs/status
   verbs:
   - get
