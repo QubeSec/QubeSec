@@ -18,14 +18,6 @@ RUN cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON && \
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
-# Get oqs-provider
-RUN git clone --depth 1 --branch main https://github.com/open-quantum-safe/oqs-provider
-
-# Install oqs-provider
-RUN cmake -S oqs-provider -B oqs-provider/build -DBUILD_SHARED_LIBS=ON && \
-    cmake --build oqs-provider/build --parallel 4 && \
-    cmake --build oqs-provider/build --target install
-
 # Copy the Go Modules manifests
 COPY go.mod go.sum ./
 
