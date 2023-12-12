@@ -4,7 +4,7 @@ FROM golang:1.21-alpine
 WORKDIR /home/qubesec
 
 # Install build dependencies
-RUN apk --no-cache add build-base cmake openssl-dev git openssl
+RUN apk --no-cache add build-base cmake openssl-dev git
 
 # Get liboqs
 RUN git clone --depth 1 --branch main https://github.com/open-quantum-safe/liboqs
