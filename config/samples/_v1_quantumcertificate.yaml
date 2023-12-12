@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/created-by: qubesec
   name: quantumcertificate-sample
 spec:
-  # algorithm: "dilithium5"
-  algorithm: "rsa"
+  algorithm: "dilithium5"
+  # algorithm: "rsa"
   domain: "example.com"
   days: 365
