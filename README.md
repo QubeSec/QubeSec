@@ -34,16 +34,16 @@ kubebuilder create api \
   --resource \
   --controller
 
+kubebuilder create api \
+  --version v1 \
+  --kind QuantumCertificate \
+  --resource \
+  --controller
+
 # In Discussions:
 kubebuilder create api \
   --version v1 \
   --kind QuantumDigitalSignature \
-  --resource \
-  --controller
-
-kubebuilder create api \
-  --version v1 \
-  --kind Certificate \
   --resource \
   --controller
 
@@ -109,4 +109,11 @@ Generate certificates for serving the webhooks locally:
 mkdir -p /tmp/k8s-webhook-server/serving-certs/
 cd /tmp/k8s-webhook-server/serving-certs/
 openssl req -newkey rsa:2048 -nodes -keyout tls.key -x509 -days 365 -out tls.crt
+```
+
+Check the certificate info:
+```bash
+kubectl get secrets quantumcertificate-sample \
+  -o jsonpath='{.data.tls\.crt}' | \
+  base64 -d | openssl x509 -text -noout
 ```

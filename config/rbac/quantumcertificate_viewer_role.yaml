@@ -1,0 +1,27 @@
+# permissions for end users to view quantumcertificates.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: quantumcertificate-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: qubesec
+    app.kubernetes.io/part-of: qubesec
+    app.kubernetes.io/managed-by: kustomize
+  name: quantumcertificate-viewer-role
+rules:
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumcertificates
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumcertificates/status
+  verbs:
+  - get

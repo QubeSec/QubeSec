@@ -1,22 +1,16 @@
-package main
+package certificate
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 
 	"github.com/google/uuid"
 )
 
-func main() {
-
-	publicKey, privateKey := createCertificate("rsa:4096", "365", "Post-Quantum")
-
-	fmt.Print(publicKey, privateKey)
-}
-
-func createCertificate(algorithm, days, commonName string) (string, string) {
+func Certificate(algorithm, domain string, days int) (string, string) {
 
 	folderName, err := createFolder()
 	if err != nil {
@@ -38,9 +32,9 @@ func createCertificate(algorithm, days, commonName string) (string, string) {
 		folderName+"/tls.crt",
 		"-nodes",
 		"-days",
-		days,
+		strconv.Itoa(days),
 		"-subj",
-		"/CN="+commonName,
+		"/CN="+domain,
 	)
 
 	err = cmd.Run()
