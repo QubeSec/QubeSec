@@ -30,6 +30,7 @@ ARG INSTALLDIR_OPENSSL=/opt/openssl32
 ARG INSTALLDIR_LIBOQS=/opt/liboqs
 ARG LIBOQS_BUILD_DEFINES="-DOQS_DIST_BUILD=ON"
 ARG MAKE_DEFINES="-j 8"
+ARG LIBOQS_VERSION="0.9.2"
 
 # Install build dependencies for liboqs
 RUN apk add build-base linux-headers libtool automake autoconf cmake ninja make git wget
@@ -37,7 +38,7 @@ RUN apk add build-base linux-headers libtool automake autoconf cmake ninja make 
 # Clone liboqs repository
 RUN mkdir /optbuild && \
     cd /optbuild && \
-    git clone --depth 1 --branch main https://github.com/open-quantum-safe/liboqs
+    git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs
 
 # Get OpenSSL image (from cache)
 COPY --from=buildopenssl ${INSTALLDIR_OPENSSL} ${INSTALLDIR_OPENSSL}
@@ -84,6 +85,9 @@ RUN liboqs_DIR=${INSTALLDIR_LIBOQS} cmake -DOPENSSL_ROOT_DIR=${INSTALLDIR_OPENSS
 # Stage 4: Build operator
 FROM golang:1.21-alpine as buildoperator
 
+# Global build arguments
+ARG LIBOQS_VERSION="0.9.2"
+
 # Set working directory
 WORKDIR /home/qubesec
 
@@ -91,7 +95,7 @@ WORKDIR /home/qubesec
 RUN apk --no-cache add build-base cmake openssl-dev git
 
 # Clone liboqs repository
-RUN git clone --depth 1 --branch main https://github.com/open-quantum-safe/liboqs
+RUN git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs
 
 # Install liboqs
 RUN cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON && \

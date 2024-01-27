@@ -117,3 +117,30 @@ kubectl get secrets quantumcertificate-sample \
   -o jsonpath='{.data.tls\.crt}' | \
   base64 -d | openssl x509 -text -noout
 ```
+
+---
+
+### Enviourment Setup
+
+Install prerequsit:
+```bash
+sudo apt install make build-essential git cmake libssl-dev
+```
+
+Clone liboqs:
+```bash
+git clone --depth 1 --branch 0.9.2 https://github.com/open-quantum-safe/liboqs
+```
+
+Install liboqs:
+```bash
+cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON
+cmake --build liboqs/build --parallel 4
+sudo cmake --build liboqs/build --target install
+```
+
+Set environment variables: `vim .bashrc`
+```bash
+export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+export LD_LIBRARY_PATH=/usr/local/lib
+```
