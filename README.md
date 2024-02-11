@@ -139,7 +139,7 @@ cmake --build liboqs/build --parallel 4
 sudo cmake --build liboqs/build --target install
 ```
 
-Set environment variables: `vim .bashrc`
+Set environment variables: `vim ~/.bashrc`
 ```bash
 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 export LD_LIBRARY_PATH=/usr/local/lib
