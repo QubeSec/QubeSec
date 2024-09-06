@@ -20,83 +20,8 @@ rules:
   - qubesec.io
   resources:
   - quantumcertificates
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - qubesec.io
-  resources:
-  - quantumcertificates/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - qubesec.io
-  resources:
-  - quantumcertificates/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - qubesec.io
-  resources:
   - quantumkemkeypairs
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - qubesec.io
-  resources:
-  - quantumkemkeypairs/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - qubesec.io
-  resources:
-  - quantumkemkeypairs/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - qubesec.io
-  resources:
   - quantumrandomnumbers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - qubesec.io
-  resources:
-  - quantumrandomnumbers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - qubesec.io
-  resources:
-  - quantumrandomnumbers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - qubesec.io
-  resources:
   - quantumsignaturekeypairs
   verbs:
   - create
@@ -109,12 +34,18 @@ rules:
 - apiGroups:
   - qubesec.io
   resources:
+  - quantumcertificates/finalizers
+  - quantumkemkeypairs/finalizers
+  - quantumrandomnumbers/finalizers
   - quantumsignaturekeypairs/finalizers
   verbs:
   - update
 - apiGroups:
   - qubesec.io
   resources:
+  - quantumcertificates/status
+  - quantumkemkeypairs/status
+  - quantumrandomnumbers/status
   - quantumsignaturekeypairs/status
   verbs:
   - get

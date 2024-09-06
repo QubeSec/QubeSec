@@ -157,17 +157,6 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandom
 	// Set algorithm for quantum random number
 	oqsrand.RandomBytesSwitchAlgorithm(quantumRandomNumber.Spec.Algorithm)
 
-	// if algorithm is NIST-KAT and seed is set, then set seed
-	if quantumRandomNumber.Spec.Algorithm == "NIST-KAT" {
-		if quantumRandomNumber.Spec.Seed != "" {
-			var entropySeed [48]byte
-			for i := 0; i < 48; i++ {
-				entropySeed[i] = byte(i)
-			}
-			oqsrand.RandomBytesNistKatInit256bit(entropySeed, []byte(quantumRandomNumber.Spec.Seed))
-		}
-	}
-
 	// Generate quantum random number
 	randomNumber := oqsrand.RandomBytes(quantumRandomNumber.Spec.Bytes)
 
