@@ -80,7 +80,7 @@ kubectl delete -k config/samples/
 
 Export the docker image:
 ```bash
-export IMG=qubesec/qubesec:v0.1.1
+export IMG=qubesec/qubesec:v0.1.19
 ```
 
 Build the docker image:
