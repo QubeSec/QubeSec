@@ -90,7 +90,7 @@ make docker-build docker-push
 
 Install cert-manager:
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.2/cert-manager.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.3/cert-manager.yaml
 ```
 
 Load the docker image into minikube:
