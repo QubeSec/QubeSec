@@ -23,7 +23,7 @@ RUN LDFLAGS="-Wl,-rpath -Wl,${INSTALLDIR_OPENSSL}/lib64" ./config shared --prefi
     ln -s ${INSTALLDIR_OPENSSL}/lib ${INSTALLDIR_OPENSSL}/lib64 || true
 
 # Stage 2: Build liboqs
-FROM alpine:3.20 as buildliboqs
+FROM alpine:3.20 AS buildliboqs
 
 # Global build arguments
 ARG INSTALLDIR_OPENSSL=/opt/openssl32
@@ -51,7 +51,7 @@ RUN mkdir build && \
     ninja install
 
 # Stage 3: Build oqs-provider
-FROM alpine:3.20 as buildoqsprovider
+FROM alpine:3.20 AS buildoqsprovider
 
 # Global build arguments
 ARG INSTALLDIR_OPENSSL=/opt/openssl32
@@ -84,7 +84,7 @@ RUN liboqs_DIR=${INSTALLDIR_LIBOQS} cmake -DOPENSSL_ROOT_DIR=${INSTALLDIR_OPENSS
     sed -i "s/HOME\t\t\t= ./HOME           = .\nDEFAULT_GROUPS = kyber768/g" ${INSTALLDIR_OPENSSL}/ssl/openssl.cnf
 
 # Stage 4: Build operator
-FROM golang:1.22-alpine as buildoperator
+FROM golang:1.23-alpine AS buildoperator
 
 # Global build arguments
 ARG LIBOQS_VERSION="0.10.1"
