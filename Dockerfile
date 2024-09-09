@@ -1,4 +1,6 @@
 # Global build arguments
+ARG BASE_ALPINE_VERSION=3.20
+ARG BASE_GOLANG_VERSION=1.23
 ARG INSTALLDIR_OPENSSL=/opt/openssl32
 ARG INSTALLDIR_LIBOQS=/opt/liboqs
 ARG MAKE_DEFINES="-j 8"
@@ -7,11 +9,7 @@ ARG LIBOQS_VERSION="0.10.1"
 ARG OQS_PROVIDER_VERSION="0.6.1"
 
 # Stage 1: Build OpenSSL
-FROM alpine:3.20 AS buildopenssl
-
-# Re-declare the global argument for this stage
-ARG INSTALLDIR_OPENSSL
-ARG MAKE_DEFINES
+FROM alpine:${BASE_ALPINE_VERSION} AS buildopenssl
 
 # Install build dependencies for OpenSSL
 RUN apk update && apk upgrade && \
@@ -31,13 +29,14 @@ RUN LDFLAGS="-Wl,-rpath -Wl,${INSTALLDIR_OPENSSL}/lib64" ./config shared --prefi
     ln -s ${INSTALLDIR_OPENSSL}/lib ${INSTALLDIR_OPENSSL}/lib64 || true
 
 # Stage 2: Build liboqs
-FROM alpine:3.20 AS buildliboqs
-
-# Re-declare the global argument for this stage
+ARG BASE_ALPINE_VERSION
 ARG LIBOQS_VERSION
 ARG LIBOQS_BUILD_DEFINES
 ARG INSTALLDIR_LIBOQS
 ARG INSTALLDIR_OPENSSL
+
+# Use alpine as base image
+FROM alpine:${BASE_ALPINE_VERSION} AS buildliboqs
 
 # Install build dependencies for liboqs
 RUN apk add build-base linux-headers libtool automake autoconf cmake ninja make git wget
@@ -58,12 +57,13 @@ RUN mkdir build && \
     ninja install
 
 # Stage 3: Build oqs-provider
-FROM alpine:3.20 AS buildoqsprovider
-
-# Re-declare the global argument for this stage
+ARG BASE_ALPINE_VERSION
 ARG OQS_PROVIDER_VERSION
 ARG INSTALLDIR_LIBOQS
 ARG INSTALLDIR_OPENSSL
+
+# Use alpine as base image
+FROM alpine:${BASE_ALPINE_VERSION} AS buildoqsprovider
 
 # Install build dependencies for oqs-provider
 RUN apk add build-base linux-headers libtool cmake ninja git wget
@@ -89,10 +89,11 @@ RUN liboqs_DIR=${INSTALLDIR_LIBOQS} cmake -DOPENSSL_ROOT_DIR=${INSTALLDIR_OPENSS
     sed -i "s/HOME\t\t\t= ./HOME           = .\nDEFAULT_GROUPS = kyber768/g" ${INSTALLDIR_OPENSSL}/ssl/openssl.cnf
 
 # Stage 4: Build operator
-FROM golang:1.23-alpine AS buildoperator
-
-# Re-declare the global argument for this stage
+ARG BASE_GOLANG_VERSION
 ARG LIBOQS_VERSION
+
+# Use golang as base image
+FROM golang:${BASE_GOLANG_VERSION}-alpine AS buildoperator
 
 # Set working directory
 WORKDIR /home/qubesec
@@ -124,10 +125,11 @@ COPY internal/ internal/
 RUN go build -o /manager cmd/main.go
 
 # Stage 5: Final image
-FROM alpine:3.20
-
-# Re-declare the global argument for this stage
+ARG BASE_ALPINE_VERSION
 ARG INSTALLDIR_OPENSSL
+
+# Use alpine as base image
+FROM alpine:${BASE_ALPINE_VERSION}
 
 # Copy oqs-provider and operator artifacts
 COPY --from=buildoqsprovider ${INSTALLDIR_OPENSSL} ${INSTALLDIR_OPENSSL}
