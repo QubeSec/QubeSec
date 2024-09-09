@@ -2,7 +2,7 @@
 ARG BASE_ALPINE_VERSION=3.20
 ARG BASE_GOLANG_VERSION=1.23
 ARG LIBOQS_VERSION="0.10.1"
-ARG LIBOQS_GO_VERSION="0.10.0"
+ARG LIBOQS_GO_VERSION="main"
 ARG OQS_PROVIDER_VERSION="0.6.1"
 ARG OPENSSL_VERSION="3.3.2"
 ARG INSTALLDIR_OPENSSL=/opt/openssl32
@@ -16,8 +16,7 @@ ARG OPENSSL_VERSION
 ARG INSTALLDIR_OPENSSL
 
 # Install build dependencies for OpenSSL
-RUN apk update && apk upgrade && \
-    apk add build-base linux-headers libtool automake autoconf make git wget
+RUN apk add build-base linux-headers libtool automake autoconf make git wget
 
 # Clone OpenSSL repository
 RUN mkdir /optbuild && \
@@ -47,7 +46,7 @@ RUN apk add build-base linux-headers libtool automake autoconf cmake ninja make 
 # Clone liboqs repository
 RUN mkdir /optbuild && \
     cd /optbuild && \
-    git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs
+    git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs.git
 
 # Get OpenSSL image (from cache)
 COPY --from=buildopenssl ${INSTALLDIR_OPENSSL} ${INSTALLDIR_OPENSSL}
@@ -102,8 +101,8 @@ ARG LIBOQS_GO_VERSION
 # Set working directory
 WORKDIR /home/qubesec
 
-# Install build dependencies
-RUN apk --no-cache add git
+# Install git
+RUN apk add git
 
 # Clone liboqs repository
 # RUN git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs
@@ -116,7 +115,7 @@ RUN apk --no-cache add git
 # Get liboqs
 COPY --from=buildliboqs ${INSTALLDIR_LIBOQS} ${INSTALLDIR_LIBOQS}
 
-RUN git clone --depth=1 --branch ${LIBOQS_GO_VERSION} https://github.com/open-quantum-safe/liboqs-go
+RUN git clone --depth=1 --branch ${LIBOQS_GO_VERSION} https://github.com/open-quantum-safe/liboqs-go.git
 
 # Configure liboqs-go
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/home/qubesec/liboqs-go/.config
