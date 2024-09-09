@@ -1,5 +1,5 @@
 # Stage 1: Build OpenSSL
-FROM alpine:3.20 as buildopenssl
+FROM alpine:3.20 AS buildopenssl
 
 # Global build arguments
 ARG INSTALLDIR_OPENSSL=/opt/openssl32
