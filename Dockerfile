@@ -5,15 +5,15 @@ ARG LIBOQS_VERSION="0.10.1"
 ARG LIBOQS_GO_VERSION="0.10.0"
 ARG OQS_PROVIDER_VERSION="0.6.1"
 ARG OPENSSL_VERSION="3.3.2"
-ARG INSTALLDIR_OPENSSL=/opt/openssl32
-ARG INSTALLDIR_LIBOQS=/opt/liboqs
+ARG OPENSSL_INSTALLDIR=/opt/openssl32
+ARG LIBOQS_INSTALLDIR=/opt/liboqs
 
 # Stage 1: Build OpenSSL
 FROM alpine:${BASE_ALPINE_VERSION} AS buildopenssl
 
 # Re-declare the global argument for this stage
 ARG OPENSSL_VERSION
-ARG INSTALLDIR_OPENSSL
+ARG OPENSSL_INSTALLDIR
 
 # Install build dependencies for OpenSSL
 RUN apk add build-base linux-headers libtool automake autoconf make git wget
@@ -25,11 +25,11 @@ RUN mkdir /optbuild && \
 
 # Build and install OpenSSL
 WORKDIR /optbuild/openssl
-RUN LDFLAGS="-Wl,-rpath -Wl,${INSTALLDIR_OPENSSL}/lib64" ./config shared --prefix=${INSTALLDIR_OPENSSL} && \
+RUN LDFLAGS="-Wl,-rpath -Wl,${OPENSSL_INSTALLDIR}/lib64" ./config shared --prefix=${OPENSSL_INSTALLDIR} && \
     make -j 8 && \
     make install && \
-    ln -s ${INSTALLDIR_OPENSSL}/lib64 ${INSTALLDIR_OPENSSL}/lib || true && \
-    ln -s ${INSTALLDIR_OPENSSL}/lib ${INSTALLDIR_OPENSSL}/lib64 || true
+    ln -s ${OPENSSL_INSTALLDIR}/lib64 ${OPENSSL_INSTALLDIR}/lib || true && \
+    ln -s ${OPENSSL_INSTALLDIR}/lib ${OPENSSL_INSTALLDIR}/lib64 || true
 
 # Stage 2: Build liboqs
 ARG BASE_ALPINE_VERSION
@@ -37,8 +37,8 @@ FROM alpine:${BASE_ALPINE_VERSION} AS buildliboqs
 
 # Re-declare the global argument for this stage
 ARG LIBOQS_VERSION
-ARG INSTALLDIR_LIBOQS
-ARG INSTALLDIR_OPENSSL
+ARG LIBOQS_INSTALLDIR
+ARG OPENSSL_INSTALLDIR
 
 # Install build dependencies for liboqs
 RUN apk add build-base linux-headers libtool automake autoconf cmake ninja make git wget
@@ -49,13 +49,13 @@ RUN mkdir /optbuild && \
     git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs.git
 
 # Get OpenSSL image (from cache)
-COPY --from=buildopenssl ${INSTALLDIR_OPENSSL} ${INSTALLDIR_OPENSSL}
+COPY --from=buildopenssl ${OPENSSL_INSTALLDIR} ${OPENSSL_INSTALLDIR}
 
 # Build and install liboqs
 WORKDIR /optbuild/liboqs
 RUN mkdir build && \
     cd build && \
-    cmake -G"Ninja" .. -DOPENSSL_ROOT_DIR=${INSTALLDIR_OPENSSL} -DOQS_DIST_BUILD=ON -DCMAKE_INSTALL_PREFIX=${INSTALLDIR_LIBOQS} && \
+    cmake -G"Ninja" .. -DOPENSSL_ROOT_DIR=${OPENSSL_INSTALLDIR} -DOQS_DIST_BUILD=ON -DCMAKE_INSTALL_PREFIX=${LIBOQS_INSTALLDIR} && \
     ninja install
 
 # Stage 3: Build oqs-provider
@@ -64,8 +64,8 @@ FROM alpine:${BASE_ALPINE_VERSION} AS buildoqsprovider
 
 # Re-declare the global argument for this stage
 ARG OQS_PROVIDER_VERSION
-ARG INSTALLDIR_LIBOQS
-ARG INSTALLDIR_OPENSSL
+ARG LIBOQS_INSTALLDIR
+ARG OPENSSL_INSTALLDIR
 
 # Install build dependencies for oqs-provider
 RUN apk add build-base linux-headers libtool cmake ninja git wget
@@ -76,19 +76,19 @@ RUN mkdir /optbuild && \
     git clone --depth 1 --branch ${OQS_PROVIDER_VERSION} https://github.com/open-quantum-safe/oqs-provider.git
 
 # Get openssl32 and liboqs
-COPY --from=buildopenssl ${INSTALLDIR_OPENSSL} ${INSTALLDIR_OPENSSL}
-COPY --from=buildliboqs ${INSTALLDIR_LIBOQS} ${INSTALLDIR_LIBOQS}
+COPY --from=buildopenssl ${OPENSSL_INSTALLDIR} ${OPENSSL_INSTALLDIR}
+COPY --from=buildliboqs ${LIBOQS_INSTALLDIR} ${LIBOQS_INSTALLDIR}
 
 # Build and install oqs-provider
 WORKDIR /optbuild/oqs-provider
-RUN liboqs_DIR=${INSTALLDIR_LIBOQS} cmake -DOPENSSL_ROOT_DIR=${INSTALLDIR_OPENSSL} -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${INSTALLDIR_OPENSSL} -S . -B _build && \
+RUN liboqs_DIR=${LIBOQS_INSTALLDIR} cmake -DOPENSSL_ROOT_DIR=${OPENSSL_INSTALLDIR} -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${OPENSSL_INSTALLDIR} -S . -B _build && \
     cmake --build _build && \
     cmake --install _build && \
-    cp _build/lib/oqsprovider.so ${INSTALLDIR_OPENSSL}/lib64/ossl-modules && \
-    sed -i "s/default = default_sect/default = default_sect\noqsprovider = oqsprovider_sect/g" ${INSTALLDIR_OPENSSL}/ssl/openssl.cnf && \
-    sed -i "s/\[default_sect\]/\[default_sect\]\nactivate = 1\n\[oqsprovider_sect\]\nactivate = 1\n/g" ${INSTALLDIR_OPENSSL}/ssl/openssl.cnf && \
-    sed -i "s/providers = provider_sect/providers = provider_sect\nssl_conf = ssl_sect\n\n\[ssl_sect\]\nsystem_default = system_default_sect\n\n\[system_default_sect\]\nGroups = \$ENV\:\:DEFAULT_GROUPS\n/g" ${INSTALLDIR_OPENSSL}/ssl/openssl.cnf && \
-    sed -i "s/HOME\t\t\t= ./HOME           = .\nDEFAULT_GROUPS = kyber768/g" ${INSTALLDIR_OPENSSL}/ssl/openssl.cnf
+    cp _build/lib/oqsprovider.so ${OPENSSL_INSTALLDIR}/lib64/ossl-modules && \
+    sed -i "s/default = default_sect/default = default_sect\noqsprovider = oqsprovider_sect/g" ${OPENSSL_INSTALLDIR}/ssl/openssl.cnf && \
+    sed -i "s/\[default_sect\]/\[default_sect\]\nactivate = 1\n\[oqsprovider_sect\]\nactivate = 1\n/g" ${OPENSSL_INSTALLDIR}/ssl/openssl.cnf && \
+    sed -i "s/providers = provider_sect/providers = provider_sect\nssl_conf = ssl_sect\n\n\[ssl_sect\]\nsystem_default = system_default_sect\n\n\[system_default_sect\]\nGroups = \$ENV\:\:DEFAULT_GROUPS\n/g" ${OPENSSL_INSTALLDIR}/ssl/openssl.cnf && \
+    sed -i "s/HOME\t\t\t= ./HOME           = .\nDEFAULT_GROUPS = kyber768/g" ${OPENSSL_INSTALLDIR}/ssl/openssl.cnf
 
 # Stage 4: Build operator
 ARG BASE_GOLANG_VERSION
@@ -132,15 +132,15 @@ ARG BASE_ALPINE_VERSION
 FROM alpine:${BASE_ALPINE_VERSION}
 
 # Re-declare the global argument for this stage
-ARG INSTALLDIR_OPENSSL
+ARG OPENSSL_INSTALLDIR
 
 # Copy oqs-provider and operator artifacts
-COPY --from=buildoqsprovider ${INSTALLDIR_OPENSSL} ${INSTALLDIR_OPENSSL}
+COPY --from=buildoqsprovider ${OPENSSL_INSTALLDIR} ${OPENSSL_INSTALLDIR}
 COPY --from=buildoperator /manager /manager
 COPY --from=buildoperator /usr/local/lib /usr/local/lib
 
 # Set environment variables
-ENV PATH="${INSTALLDIR_OPENSSL}/bin:${PATH}"
+ENV PATH="${OPENSSL_INSTALLDIR}/bin:${PATH}"
 
 # Set user
 USER 65532:65532
