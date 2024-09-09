@@ -6,10 +6,17 @@ ARG INSTALLDIR_LIBOQS=/opt/liboqs
 ARG MAKE_DEFINES="-j 8"
 ARG LIBOQS_BUILD_DEFINES="-DOQS_DIST_BUILD=ON"
 ARG LIBOQS_VERSION="0.10.1"
+ARG LIBOQS_GO_VERSION="0.10.0"
 ARG OQS_PROVIDER_VERSION="0.6.1"
+ARG OPENSSL_VERSION="3.3.2"
 
 # Stage 1: Build OpenSSL
 FROM alpine:${BASE_ALPINE_VERSION} AS buildopenssl
+
+# Re-declare the global argument for this stage
+ARG OPENSSL_VERSION
+ARG INSTALLDIR_OPENSSL
+ARG MAKE_DEFINES
 
 # Install build dependencies for OpenSSL
 RUN apk update && apk upgrade && \
@@ -18,7 +25,7 @@ RUN apk update && apk upgrade && \
 # Clone OpenSSL repository
 RUN mkdir /optbuild && \
     cd /optbuild && \
-    git clone --depth 1 --branch master https://github.com/openssl/openssl.git
+    git clone --depth 1 --branch openssl-${OPENSSL_VERSION} https://github.com/openssl/openssl.git
 
 # Build and install OpenSSL
 WORKDIR /optbuild/openssl
@@ -30,13 +37,13 @@ RUN LDFLAGS="-Wl,-rpath -Wl,${INSTALLDIR_OPENSSL}/lib64" ./config shared --prefi
 
 # Stage 2: Build liboqs
 ARG BASE_ALPINE_VERSION
+FROM alpine:${BASE_ALPINE_VERSION} AS buildliboqs
+
+# Re-declare the global argument for this stage
 ARG LIBOQS_VERSION
 ARG LIBOQS_BUILD_DEFINES
 ARG INSTALLDIR_LIBOQS
 ARG INSTALLDIR_OPENSSL
-
-# Use alpine as base image
-FROM alpine:${BASE_ALPINE_VERSION} AS buildliboqs
 
 # Install build dependencies for liboqs
 RUN apk add build-base linux-headers libtool automake autoconf cmake ninja make git wget
@@ -58,12 +65,12 @@ RUN mkdir build && \
 
 # Stage 3: Build oqs-provider
 ARG BASE_ALPINE_VERSION
+FROM alpine:${BASE_ALPINE_VERSION} AS buildoqsprovider
+
+# Re-declare the global argument for this stage
 ARG OQS_PROVIDER_VERSION
 ARG INSTALLDIR_LIBOQS
 ARG INSTALLDIR_OPENSSL
-
-# Use alpine as base image
-FROM alpine:${BASE_ALPINE_VERSION} AS buildoqsprovider
 
 # Install build dependencies for oqs-provider
 RUN apk add build-base linux-headers libtool cmake ninja git wget
@@ -90,10 +97,11 @@ RUN liboqs_DIR=${INSTALLDIR_LIBOQS} cmake -DOPENSSL_ROOT_DIR=${INSTALLDIR_OPENSS
 
 # Stage 4: Build operator
 ARG BASE_GOLANG_VERSION
-ARG LIBOQS_VERSION
-
-# Use golang as base image
 FROM golang:${BASE_GOLANG_VERSION}-alpine AS buildoperator
+
+# Re-declare the global argument for this stage
+ARG LIBOQS_VERSION
+ARG LIBOQS_GO_VERSION
 
 # Set working directory
 WORKDIR /home/qubesec
@@ -109,10 +117,10 @@ RUN cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON && \
     cmake --build liboqs/build --parallel 4 && \
     cmake --build liboqs/build --target install
 
-RUN git clone --depth=1 https://github.com/open-quantum-safe/liboqs-go /root/liboqs-go
+RUN git clone --depth=1 --branch ${LIBOQS_GO_VERSION} https://github.com/open-quantum-safe/liboqs-go
 
 # Configure liboqs-go
-ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/root/liboqs-go/.config
+ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/home/qubesec/liboqs-go/.config
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
 # Copy Go source code
@@ -126,10 +134,10 @@ RUN go build -o /manager cmd/main.go
 
 # Stage 5: Final image
 ARG BASE_ALPINE_VERSION
-ARG INSTALLDIR_OPENSSL
-
-# Use alpine as base image
 FROM alpine:${BASE_ALPINE_VERSION}
+
+# Re-declare the global argument for this stage
+ARG INSTALLDIR_OPENSSL
 
 # Copy oqs-provider and operator artifacts
 COPY --from=buildoqsprovider ${INSTALLDIR_OPENSSL} ${INSTALLDIR_OPENSSL}
