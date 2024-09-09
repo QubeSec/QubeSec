@@ -101,19 +101,16 @@ ARG LIBOQS_GO_VERSION
 # Set working directory
 WORKDIR /home/qubesec
 
-# Install git
-RUN apk add git
+# Install build dependencies
+RUN apk add build-base cmake openssl-dev git
 
 # Clone liboqs repository
-# RUN git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs
+RUN git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs
 
 # Install liboqs
-# RUN cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON && \
-#     cmake --build liboqs/build --parallel 4 && \
-#     cmake --build liboqs/build --target install
-
-# Get liboqs
-COPY --from=buildliboqs ${INSTALLDIR_LIBOQS} ${INSTALLDIR_LIBOQS}
+RUN cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON && \
+    cmake --build liboqs/build --parallel 4 && \
+    cmake --build liboqs/build --target install
 
 RUN git clone --depth=1 --branch ${LIBOQS_GO_VERSION} https://github.com/open-quantum-safe/liboqs-go.git
 
