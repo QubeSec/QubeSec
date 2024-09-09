@@ -1,14 +1,12 @@
 # Global build arguments
 ARG BASE_ALPINE_VERSION=3.20
 ARG BASE_GOLANG_VERSION=1.23
-ARG INSTALLDIR_OPENSSL=/opt/openssl32
-ARG INSTALLDIR_LIBOQS=/opt/liboqs
-ARG MAKE_DEFINES="-j 8"
-ARG LIBOQS_BUILD_DEFINES="-DOQS_DIST_BUILD=ON"
 ARG LIBOQS_VERSION="0.10.1"
 ARG LIBOQS_GO_VERSION="0.10.0"
 ARG OQS_PROVIDER_VERSION="0.6.1"
 ARG OPENSSL_VERSION="3.3.2"
+ARG INSTALLDIR_OPENSSL=/opt/openssl32
+ARG INSTALLDIR_LIBOQS=/opt/liboqs
 
 # Stage 1: Build OpenSSL
 FROM alpine:${BASE_ALPINE_VERSION} AS buildopenssl
@@ -16,7 +14,6 @@ FROM alpine:${BASE_ALPINE_VERSION} AS buildopenssl
 # Re-declare the global argument for this stage
 ARG OPENSSL_VERSION
 ARG INSTALLDIR_OPENSSL
-ARG MAKE_DEFINES
 
 # Install build dependencies for OpenSSL
 RUN apk update && apk upgrade && \
@@ -30,7 +27,7 @@ RUN mkdir /optbuild && \
 # Build and install OpenSSL
 WORKDIR /optbuild/openssl
 RUN LDFLAGS="-Wl,-rpath -Wl,${INSTALLDIR_OPENSSL}/lib64" ./config shared --prefix=${INSTALLDIR_OPENSSL} && \
-    make ${MAKE_DEFINES} && \
+    make -j 8 && \
     make install && \
     ln -s ${INSTALLDIR_OPENSSL}/lib64 ${INSTALLDIR_OPENSSL}/lib || true && \
     ln -s ${INSTALLDIR_OPENSSL}/lib ${INSTALLDIR_OPENSSL}/lib64 || true
@@ -41,7 +38,6 @@ FROM alpine:${BASE_ALPINE_VERSION} AS buildliboqs
 
 # Re-declare the global argument for this stage
 ARG LIBOQS_VERSION
-ARG LIBOQS_BUILD_DEFINES
 ARG INSTALLDIR_LIBOQS
 ARG INSTALLDIR_OPENSSL
 
@@ -60,7 +56,7 @@ COPY --from=buildopenssl ${INSTALLDIR_OPENSSL} ${INSTALLDIR_OPENSSL}
 WORKDIR /optbuild/liboqs
 RUN mkdir build && \
     cd build && \
-    cmake -G"Ninja" .. -DOPENSSL_ROOT_DIR=${INSTALLDIR_OPENSSL} ${LIBOQS_BUILD_DEFINES} -DCMAKE_INSTALL_PREFIX=${INSTALLDIR_LIBOQS} && \
+    cmake -G"Ninja" .. -DOPENSSL_ROOT_DIR=${INSTALLDIR_OPENSSL} -DOQS_DIST_BUILD=ON -DCMAKE_INSTALL_PREFIX=${INSTALLDIR_LIBOQS} && \
     ninja install
 
 # Stage 3: Build oqs-provider
@@ -107,15 +103,18 @@ ARG LIBOQS_GO_VERSION
 WORKDIR /home/qubesec
 
 # Install build dependencies
-RUN apk --no-cache add build-base cmake openssl-dev git
+RUN apk --no-cache add git
 
 # Clone liboqs repository
-RUN git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs
+# RUN git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs
 
 # Install liboqs
-RUN cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON && \
-    cmake --build liboqs/build --parallel 4 && \
-    cmake --build liboqs/build --target install
+# RUN cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON && \
+#     cmake --build liboqs/build --parallel 4 && \
+#     cmake --build liboqs/build --target install
+
+# Get liboqs
+COPY --from=buildliboqs ${INSTALLDIR_LIBOQS} ${INSTALLDIR_LIBOQS}
 
 RUN git clone --depth=1 --branch ${LIBOQS_GO_VERSION} https://github.com/open-quantum-safe/liboqs-go
 
