@@ -9,6 +9,10 @@ ARG OQS_PROVIDER_VERSION="0.6.1"
 # Stage 1: Build OpenSSL
 FROM alpine:3.20 AS buildopenssl
 
+# Re-declare the global argument for this stage
+ARG INSTALLDIR_OPENSSL
+ARG MAKE_DEFINES
+
 # Install build dependencies for OpenSSL
 RUN apk update && apk upgrade && \
     apk add build-base linux-headers libtool automake autoconf make git wget
@@ -28,6 +32,12 @@ RUN LDFLAGS="-Wl,-rpath -Wl,${INSTALLDIR_OPENSSL}/lib64" ./config shared --prefi
 
 # Stage 2: Build liboqs
 FROM alpine:3.20 AS buildliboqs
+
+# Re-declare the global argument for this stage
+ARG LIBOQS_VERSION
+ARG LIBOQS_BUILD_DEFINES
+ARG INSTALLDIR_LIBOQS
+ARG INSTALLDIR_OPENSSL
 
 # Install build dependencies for liboqs
 RUN apk add build-base linux-headers libtool automake autoconf cmake ninja make git wget
@@ -49,6 +59,11 @@ RUN mkdir build && \
 
 # Stage 3: Build oqs-provider
 FROM alpine:3.20 AS buildoqsprovider
+
+# Re-declare the global argument for this stage
+ARG OQS_PROVIDER_VERSION
+ARG INSTALLDIR_LIBOQS
+ARG INSTALLDIR_OPENSSL
 
 # Install build dependencies for oqs-provider
 RUN apk add build-base linux-headers libtool cmake ninja git wget
@@ -75,6 +90,9 @@ RUN liboqs_DIR=${INSTALLDIR_LIBOQS} cmake -DOPENSSL_ROOT_DIR=${INSTALLDIR_OPENSS
 
 # Stage 4: Build operator
 FROM golang:1.23-alpine AS buildoperator
+
+# Re-declare the global argument for this stage
+ARG LIBOQS_VERSION
 
 # Set working directory
 WORKDIR /home/qubesec
@@ -107,6 +125,9 @@ RUN go build -o /manager cmd/main.go
 
 # Stage 5: Final image
 FROM alpine:3.20
+
+# Re-declare the global argument for this stage
+ARG INSTALLDIR_OPENSSL
 
 # Copy oqs-provider and operator artifacts
 COPY --from=buildoqsprovider ${INSTALLDIR_OPENSSL} ${INSTALLDIR_OPENSSL}
