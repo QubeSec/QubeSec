@@ -59,9 +59,9 @@ func (r *QuantumRandomNumber) Default() {
 		r.Spec.Bytes = 32
 	}
 
-	// if Algorithm is not set, set it to NIST-KAT
+	// if Algorithm is not set, set it to system
 	if r.Spec.Algorithm == "" {
-		r.Spec.Algorithm = "NIST-KAT"
+		r.Spec.Algorithm = "system"
 	}
 }
 
