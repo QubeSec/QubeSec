@@ -75,7 +75,7 @@ RUN mkdir /optbuild && \
     cd /optbuild && \
     git clone --depth 1 --branch ${OQS_PROVIDER_VERSION} https://github.com/open-quantum-safe/oqs-provider.git
 
-# Get openssl32 and liboqs
+# Get openssl and liboqs
 COPY --from=buildopenssl ${OPENSSL_INSTALLDIR} ${OPENSSL_INSTALLDIR}
 COPY --from=buildliboqs ${LIBOQS_INSTALLDIR} ${LIBOQS_INSTALLDIR}
 
