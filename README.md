@@ -80,7 +80,7 @@ kubectl delete -k config/samples/
 
 Export the docker image:
 ```bash
-export IMG=qubesec/qubesec:v0.1.19
+export IMG=qubesec/qubesec:v0.1.20
 ```
 
 Build the docker image:
@@ -95,7 +95,7 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 
 Load the docker image into minikube:
 ```bash
-make docker-build && minikube image load qubesec/qubesec:v0.1.19
+make docker-build && minikube image load qubesec/qubesec:v0.1.20
 ```
 
 Create a deployment:
