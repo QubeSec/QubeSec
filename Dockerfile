@@ -105,7 +105,7 @@ WORKDIR /home/qubesec
 RUN apk add build-base cmake openssl-dev git
 
 # Clone liboqs repository
-RUN git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs
+RUN git clone --depth 1 --branch ${LIBOQS_VERSION} https://github.com/open-quantum-safe/liboqs.git
 
 # Install liboqs
 RUN cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON && \
