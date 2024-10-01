@@ -72,7 +72,7 @@ export ENABLE_WEBHOOKS=false
 make run
 ```
 
-Create a KeyRequest Custom Resource:
+Apply samples for testing operator:
 ```bash
 kubectl apply -k config/samples/
 kubectl delete -k config/samples/
