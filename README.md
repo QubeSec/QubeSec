@@ -127,9 +127,10 @@ Install prerequsit:
 sudo apt install make build-essential git cmake libssl-dev
 ```
 
-Clone liboqs:
+Clone liboqs and liboqs-go:
 ```bash
 git clone --depth 1 --branch 0.10.1 https://github.com/open-quantum-safe/liboqs
+git clone --depth 1 --branch 0.10.0 https://github.com/open-quantum-safe/liboqs-go
 ```
 
 Install liboqs:
@@ -141,6 +142,6 @@ sudo cmake --build liboqs/build --target install
 
 Set environment variables: `vim ~/.bashrc`
 ```bash
-export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/home/ubuntu/liboqs-go/.config
 export LD_LIBRARY_PATH=/usr/local/lib
 ```
