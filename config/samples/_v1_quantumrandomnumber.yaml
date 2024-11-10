@@ -10,7 +10,7 @@ metadata:
   name: quantumrandomnumber-sample
 spec:
   # Number of bytes to generate
-  bytes: 32
+  bytes: 64
   # Possible values are "system" or "OpenSSL"
   algorithm: OpenSSL
   # openssl rand -base64 35
