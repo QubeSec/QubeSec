@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -48,49 +49,57 @@ func (r *QuantumRandomNumber) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 //+kubebuilder:webhook:path=/mutate-qubesec-io-v1-quantumrandomnumber,mutating=true,failurePolicy=fail,sideEffects=None,groups=qubesec.io,resources=quantumrandomnumbers,verbs=create;update,versions=v1,name=mquantumrandomnumber.kb.io,admissionReviewVersions=v1
 
-var _ webhook.Defaulter = &QuantumRandomNumber{}
+// Implement the new controller-runtime v0.22 CustomDefaulter interface.
+var _ webhook.CustomDefaulter = &QuantumRandomNumber{}
 
-// Default implements webhook.Defaulter so a webhook will be registered for the type
-func (r *QuantumRandomNumber) Default() {
-	quantumrandomnumberlog.Info("default", "name", r.Name)
-
-	// if Bytes is not set, set it to 32
-	if r.Spec.Bytes == 0 {
-		r.Spec.Bytes = 32
+// Default sets any unset fields to their default values.
+func (r *QuantumRandomNumber) Default(ctx context.Context, obj runtime.Object) error {
+	qrng, ok := obj.(*QuantumRandomNumber)
+	if !ok {
+		return fmt.Errorf("expected *QuantumRandomNumber but got %T", obj)
 	}
-
-	// if Algorithm is not set, set it to system
-	if r.Spec.Algorithm == "" {
-		r.Spec.Algorithm = "system"
+	quantumrandomnumberlog.Info("default", "name", qrng.Name)
+	if qrng.Spec.Bytes == 0 {
+		qrng.Spec.Bytes = 32
 	}
+	if qrng.Spec.Algorithm == "" {
+		qrng.Spec.Algorithm = "system"
+	}
+	return nil
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 //+kubebuilder:webhook:path=/validate-qubesec-io-v1-quantumrandomnumber,mutating=false,failurePolicy=fail,sideEffects=None,groups=qubesec.io,resources=quantumrandomnumbers,verbs=create;update,versions=v1,name=vquantumrandomnumber.kb.io,admissionReviewVersions=v1
 
-var _ webhook.Validator = &QuantumRandomNumber{}
+// Implement the new controller-runtime v0.22 CustomValidator interface.
+var _ webhook.CustomValidator = &QuantumRandomNumber{}
 
-// ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *QuantumRandomNumber) ValidateCreate() (admission.Warnings, error) {
-	quantumrandomnumberlog.Info("validate create", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object creation.
-	return nil, r.validateQuantumRandomNumber()
+// ValidateCreate validates the object on creation.
+func (r *QuantumRandomNumber) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
+	qrng, ok := obj.(*QuantumRandomNumber)
+	if !ok {
+		return nil, fmt.Errorf("expected *QuantumRandomNumber but got %T", obj)
+	}
+	quantumrandomnumberlog.Info("validate create", "name", qrng.Name)
+	return nil, qrng.validateQuantumRandomNumber()
 }
 
-// ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *QuantumRandomNumber) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
-	quantumrandomnumberlog.Info("validate update", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object update.
-	return nil, r.validateQuantumRandomNumber()
+// ValidateUpdate validates the object on update.
+func (r *QuantumRandomNumber) ValidateUpdate(ctx context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
+	qrng, ok := newObj.(*QuantumRandomNumber)
+	if !ok {
+		return nil, fmt.Errorf("expected *QuantumRandomNumber but got %T", newObj)
+	}
+	quantumrandomnumberlog.Info("validate update", "name", qrng.Name)
+	return nil, qrng.validateQuantumRandomNumber()
 }
 
-// ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *QuantumRandomNumber) ValidateDelete() (admission.Warnings, error) {
-	quantumrandomnumberlog.Info("validate delete", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object deletion.
+// ValidateDelete validates the object on deletion.
+func (r *QuantumRandomNumber) ValidateDelete(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
+	qrng, ok := obj.(*QuantumRandomNumber)
+	if ok {
+		quantumrandomnumberlog.Info("validate delete", "name", qrng.Name)
+	}
 	return nil, nil
 }
 
