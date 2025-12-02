@@ -177,7 +177,7 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandom
 	}
 
 	// Set owner reference to QuantumRandomNumber for Secret
-	err := ctrl.SetControllerReference(quantumRandomNumber, secret, r.Scheme)
+	err = ctrl.SetControllerReference(quantumRandomNumber, secret, r.Scheme)
 	if err != nil {
 		log.Error(err, "Failed to Set Controller Reference")
 	}
