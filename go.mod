@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/onsi/ginkgo/v2 v2.27.2
 	github.com/onsi/gomega v1.38.2
-	github.com/open-quantum-safe/liboqs-go v0.0.0-20240412174151-8a109c3b4878
+	github.com/open-quantum-safe/liboqs-go v0.0.0-20250119172907-28b5301df438
 	k8s.io/api v0.34.2
 	k8s.io/apimachinery v0.34.2
 	k8s.io/client-go v0.34.2

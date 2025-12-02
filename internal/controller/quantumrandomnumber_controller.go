@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
@@ -28,7 +29,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	qubeseciov1 "github.com/QubeSec/QubeSec/api/v1"
-	oqsrand "github.com/open-quantum-safe/liboqs-go/oqs/rand"
 
 	"github.com/QubeSec/QubeSec/internal/shannonentropy"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -154,11 +154,13 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandom
 	// Setup logger
 	log := log.FromContext(ctx)
 
-	// Set algorithm for quantum random number
-	oqsrand.RandomBytesSwitchAlgorithm(quantumRandomNumber.Spec.Algorithm)
-
-	// Generate quantum random number
-	randomNumber := oqsrand.RandomBytes(quantumRandomNumber.Spec.Bytes)
+	// Generate random number using crypto/rand
+	randomNumber := make([]byte, quantumRandomNumber.Spec.Bytes)
+	_, err := rand.Read(randomNumber)
+	if err != nil {
+		log.Error(err, "Failed to generate random bytes")
+		return corev1.Secret{}, 0
+	}
 
 	// Calculate Shannon Entropy
 	shannonEntropy := shannonentropy.ShannonEntropy(randomNumber)
