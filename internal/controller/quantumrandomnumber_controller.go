@@ -18,7 +18,6 @@ package controller
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
@@ -29,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	qubeseciov1 "github.com/QubeSec/QubeSec/api/v1"
+	"github.com/open-quantum-safe/liboqs-go/oqs"
 
 	"github.com/QubeSec/QubeSec/internal/shannonentropy"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -154,13 +154,11 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandom
 	// Setup logger
 	log := log.FromContext(ctx)
 
-	// Generate random number using crypto/rand
-	randomNumber := make([]byte, quantumRandomNumber.Spec.Bytes)
-	_, err := rand.Read(randomNumber)
-	if err != nil {
-		log.Error(err, "Failed to generate random bytes")
-		return corev1.Secret{}, 0
-	}
+	// Set algorithm for quantum random number
+	oqs.RandomBytesSwitchAlgorithm(quantumRandomNumber.Spec.Algorithm)
+
+	// Generate quantum random number
+	randomNumber := oqs.RandomBytes(quantumRandomNumber.Spec.Bytes)
 
 	// Calculate Shannon Entropy
 	shannonEntropy := shannonentropy.ShannonEntropy(randomNumber)
@@ -177,7 +175,7 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandom
 	}
 
 	// Set owner reference to QuantumRandomNumber for Secret
-	err = ctrl.SetControllerReference(quantumRandomNumber, secret, r.Scheme)
+	err := ctrl.SetControllerReference(quantumRandomNumber, secret, r.Scheme)
 	if err != nil {
 		log.Error(err, "Failed to Set Controller Reference")
 	}
