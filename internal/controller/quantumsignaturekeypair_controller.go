@@ -67,6 +67,9 @@ func (r *QuantumSignatureKeyPairReconciler) Reconcile(ctx context.Context, req c
 	err = r.CreateOrUpdateSecret(quantumSignatureKeyPair, ctx)
 	if err != nil {
 		log.Error(err, "Failed to Create or Update Secret")
+		quantumSignatureKeyPair.Status.Status = "Failed"
+		quantumSignatureKeyPair.Status.Error = err.Error()
+		_ = r.Status().Update(ctx, quantumSignatureKeyPair)
 		return ctrl.Result{}, err
 	}
 
@@ -104,39 +107,63 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 		return err
 	}
 
-	// If Secret doesn't exist, create it
-	if err != nil {
-
-		// Generate key pair
-		publicKey, privateKey := keypair.GenerateSIGKeyPair(quantumSignatureKeyPair.Spec.Algorithm, ctx)
-
-		// Create Secret object
-		newSecret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
+	// If Secret already exists, update status to Success
+	if err == nil {
+		if quantumSignatureKeyPair.Status.Status != "Success" {
+			now := metav1.Now()
+			quantumSignatureKeyPair.Status.Status = "Success"
+			quantumSignatureKeyPair.Status.KeyPairReference = &qubeseciov1.ObjectReference{
 				Name:      secretName,
 				Namespace: quantumSignatureKeyPair.Namespace,
-			},
-			Data: map[string][]byte{
-				"public-key":  []byte(publicKey),
-				"private-key": []byte(privateKey),
-			},
+			}
+			quantumSignatureKeyPair.Status.LastUpdateTime = &now
+			quantumSignatureKeyPair.Status.Error = ""
+			_ = r.Status().Update(ctx, quantumSignatureKeyPair)
 		}
-
-		// Set owner reference to QuantumKEMKeyPair for Secret
-		err := ctrl.SetControllerReference(quantumSignatureKeyPair, newSecret, r.Scheme)
-		if err != nil {
-			log.Error(err, "Failed to Set Controller Reference")
-			return err
-		}
-
-		// Create Secret
-		err = r.Create(ctx, newSecret)
-		if err != nil {
-			log.Error(err, "Failed to Create Secret")
-			return err
-		}
-		log.Info("Created Secret")
+		return nil
 	}
+
+	// If Secret doesn't exist, create it
+	// Generate key pair
+	publicKey, privateKey := keypair.GenerateSIGKeyPair(quantumSignatureKeyPair.Spec.Algorithm, ctx)
+
+	// Create Secret object
+	newSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: quantumSignatureKeyPair.Namespace,
+		},
+		Data: map[string][]byte{
+			"public-key":  []byte(publicKey),
+			"private-key": []byte(privateKey),
+		},
+	}
+
+	// Set owner reference to QuantumSignatureKeyPair for Secret
+	err = ctrl.SetControllerReference(quantumSignatureKeyPair, newSecret, r.Scheme)
+	if err != nil {
+		log.Error(err, "Failed to Set Controller Reference")
+		return err
+	}
+
+	// Create Secret
+	err = r.Create(ctx, newSecret)
+	if err != nil {
+		log.Error(err, "Failed to Create Secret")
+		return err
+	}
+	log.Info("Created Secret")
+
+	// Update status to Success
+	now := metav1.Now()
+	quantumSignatureKeyPair.Status.Status = "Success"
+	quantumSignatureKeyPair.Status.KeyPairReference = &qubeseciov1.ObjectReference{
+		Name:      secretName,
+		Namespace: quantumSignatureKeyPair.Namespace,
+	}
+	quantumSignatureKeyPair.Status.LastUpdateTime = &now
+	quantumSignatureKeyPair.Status.Error = ""
+	_ = r.Status().Update(ctx, quantumSignatureKeyPair)
 
 	return nil
 }

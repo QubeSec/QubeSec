@@ -2,12 +2,13 @@
 - name: Setup liboqs
   hosts: all
   roles:
-    - role: docker
-    - role: minikube
-    - role: kubectl
-    - role: golang
-    - role: liboqs
-    - role: liboqs-go
+    # - role: docker
+    # - role: minikube
+    # - role: kubectl
+    # - role: golang
+    # - role: liboqs
+    # - role: liboqs-go
+    - role: openssl-oqs-provider
   vars:
     liboqs_version: "0.15.0"
     liboqs_go_version: "0.12.0"

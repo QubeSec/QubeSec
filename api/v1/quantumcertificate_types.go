@@ -40,15 +40,31 @@ type QuantumCertificateSpec struct {
 type QuantumCertificateStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// Status of certificate generation
+	// +kubebuilder:validation:Enum=Pending;Success;Failed
+	Status string `json:"status,omitempty"`
+
+	// CertificateReference points to where the certificate is stored
+	CertificateReference *ObjectReference `json:"certificateReference,omitempty"`
+
+	// LastUpdateTime is when the certificate was last generated
+	LastUpdateTime *metav1.Time `json:"lastUpdateTime,omitempty"`
+
+	// CertificateFingerprint is a hash of the certificate for verification (hex-encoded)
+	CertificateFingerprint string `json:"certificateFingerprint,omitempty"`
+
+	// Error message if generation failed
+	Error string `json:"error,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:shortName=qc
 //+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+//+kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
 //+kubebuilder:printcolumn:name="Algorithm",type=string,JSONPath=`.spec.algorithm`
 //+kubebuilder:printcolumn:name="Domain",type=string,JSONPath=`.spec.domain`
-//+kubebuilder:printcolumn:name="Days",type=number,JSONPath=`.spec.days`
+//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // QuantumCertificate is the Schema for the quantumcertificates API
 type QuantumCertificate struct {

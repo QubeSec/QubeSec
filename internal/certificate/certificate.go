@@ -1,6 +1,7 @@
 package certificate
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -38,9 +39,13 @@ func Certificate(algorithm, domain string, days int) (string, string) {
 		"/CN="+domain,
 	)
 
+	// Capture stderr for better error messages
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println("Error executing command:", err)
+		fmt.Printf("Error executing openssl: %v\nStderr: %s\n", err, stderr.String())
 		return "", ""
 	}
 

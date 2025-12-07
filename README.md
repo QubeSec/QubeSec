@@ -1,5 +1,20 @@
 # QubeSec
 
+## Key Storage Format
+
+All cryptographic keys (PEM-encoded keypairs, certificates, derived keys, shared secrets, random numbers) are stored in Kubernetes Secrets as **hex-encoded** binary data using the `Data` field (not `StringData`). This ensures consistent and secure binary storage.
+
+To decode and inspect:
+```bash
+# View first 100 hex characters
+kubectl get secret <secret-name> -o jsonpath='{.data.<key>}' | base64 -d
+
+# Convert hex to ASCII (for PEM keys)
+kubectl get secret <secret-name> -o jsonpath='{.data.<key>}' | base64 -d | xxd -r -p
+```
+
+---
+
 Initialize the project with kubebuilder:
 ```bash
 kubebuilder init \
@@ -116,12 +131,19 @@ cd /tmp/k8s-webhook-server/serving-certs/
 openssl req -newkey rsa:2048 -nodes -keyout tls.key -x509 -days 365 -out tls.crt
 ```
 
-Check the certificate info:
+Check the certificate info (note: keys are now stored as hex):
 ```bash
-kubectl get secrets quantumcertificate-sample \
+# For post-quantum certificates with oqs-provider:
+kubectl get secret quantumcertificate-sample-tls \
   -o jsonpath='{.data.tls\.crt}' | \
-  base64 -d | openssl x509 -text -noout
+  base64 -d | xxd -r -p | openssl x509 -text -noout
+
+# Or view the raw hex:
+kubectl get secret quantumcertificate-sample-tls \
+  -o jsonpath='{.data.tls\.crt}' | base64 -d | head -c 100
 ```
+
+**Note**: Quantum certificate generation requires OpenSSL with oqs-provider loaded. See [Ansible Role Setup](#setting-up-with-ansible) for building OpenSSL with oqs-provider support.
 
 ---
 

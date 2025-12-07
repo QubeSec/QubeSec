@@ -18,9 +18,9 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .metadata.creationTimestamp
-      name: Age
-      type: date
+    - jsonPath: .status.status
+      name: Status
+      type: string
     - jsonPath: .status.bytes
       name: Bytes
       type: integer
@@ -30,6 +30,9 @@ spec:
     - jsonPath: .status.entropy
       name: Entropy
       type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
     name: v1
     schema:
       openAPIV3Schema:
@@ -77,11 +80,36 @@ spec:
               algorithm:
                 type: string
               bytes:
-                description: |-
-                  INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-                  Important: Run "make" to regenerate code after modifying this file
                 type: integer
               entropy:
+                type: string
+              error:
+                description: Error message if generation failed
+                type: string
+              lastUpdateTime:
+                description: LastUpdateTime is when the random number was last generated
+                format: date-time
+                type: string
+              randomNumberReference:
+                description: RandomNumberReference points to where the random data
+                  is stored
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              status:
+                description: Status of random number generation
+                enum:
+                - Pending
+                - Success
+                - Failed
                 type: string
             type: object
         type: object

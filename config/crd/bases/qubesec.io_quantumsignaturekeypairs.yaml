@@ -17,12 +17,15 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .metadata.creationTimestamp
-      name: Age
-      type: date
+    - jsonPath: .status.status
+      name: Status
+      type: string
     - jsonPath: .spec.algorithm
       name: Algorithm
       type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
     name: v1
     schema:
       openAPIV3Schema:
@@ -62,6 +65,37 @@ spec:
           status:
             description: QuantumSignatureKeyPairStatus defines the observed state
               of QuantumSignatureKeyPair
+            properties:
+              error:
+                description: Error message if generation failed
+                type: string
+              keyPairReference:
+                description: KeyPairReference points to where the keys are stored
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              lastUpdateTime:
+                description: LastUpdateTime is when the key pair was last generated
+                format: date-time
+                type: string
+              publicKeyFingerprint:
+                description: PublicKeyFingerprint is a hash of the public key (hex-encoded)
+                type: string
+              status:
+                description: Status of key generation
+                enum:
+                - Pending
+                - Success
+                - Failed
+                type: string
             type: object
         type: object
     served: true

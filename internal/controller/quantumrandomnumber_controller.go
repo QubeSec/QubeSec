@@ -72,6 +72,9 @@ func (r *QuantumRandomNumberReconciler) Reconcile(ctx context.Context, req ctrl.
 	err = r.CreateOrUpdateSecret(quantumRandomNumber, ctx)
 	if err != nil {
 		log.Error(err, "Failed to Create or Update Secret")
+		quantumRandomNumber.Status.Status = "Failed"
+		quantumRandomNumber.Status.Error = err.Error()
+		_ = r.Status().Update(ctx, quantumRandomNumber)
 		return ctrl.Result{}, err
 	}
 
@@ -110,52 +113,54 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumRandomNumber
 		return err
 	}
 
-	// If Secret doesn't exist, create it
-	if err != nil {
-
-		secret, shannonEntropy := r.GenerateRandomNumberSecret(quantumRandomNumber, secretName, ctx)
-
-		// Create Secret
-		err = r.Create(ctx, &secret)
-		if err != nil {
-			return err
-		}
-		log.Info("Created Secret")
-
-		err := r.UpdateStatus(quantumRandomNumber, ctx, shannonEntropy)
-		if err != nil {
-			log.Error(err, "Create: Failed to Update Status")
-			return err
-		}
-
-	} else {
-
-		// If Secret exists, compair the desired state of bytes
-		if quantumRandomNumber.Status.Bytes != quantumRandomNumber.Spec.Bytes ||
-			quantumRandomNumber.Status.Algorithm != quantumRandomNumber.Spec.Algorithm {
-
-			secret, shannonEntropy := r.GenerateRandomNumberSecret(quantumRandomNumber, secretName, ctx)
-
-			// Update Secret
-			err = r.Update(ctx, &secret)
-			if err != nil {
-				return err
+	// If Secret already exists, update status to Success
+	if err == nil {
+		if quantumRandomNumber.Status.Status != "Success" {
+			now := metav1.Now()
+			quantumRandomNumber.Status.Status = "Success"
+			quantumRandomNumber.Status.RandomNumberReference = &qubeseciov1.ObjectReference{
+				Name:      secretName,
+				Namespace: quantumRandomNumber.Namespace,
 			}
-			log.Info("Updated Secret")
-
-			if err := r.UpdateStatus(quantumRandomNumber, ctx, shannonEntropy); err != nil {
-				log.Error(err, "Update: Failed to Update Status")
-				return err
-			}
-
+			quantumRandomNumber.Status.LastUpdateTime = &now
+			quantumRandomNumber.Status.Error = ""
+			_ = r.Status().Update(ctx, quantumRandomNumber)
 		}
+		return nil
 	}
+
+	// If Secret doesn't exist, create it
+	secret, shannonEntropy := r.GenerateRandomNumberSecret(quantumRandomNumber, secretName, ctx)
+
+	// Create Secret
+	err = r.Create(ctx, secret)
+	if err != nil {
+		return err
+	}
+	log.Info("Created Secret")
+
+	err = r.UpdateStatus(quantumRandomNumber, ctx, shannonEntropy)
+	if err != nil {
+		log.Error(err, "Create: Failed to Update Status")
+		return err
+	}
+
+	// Update status to Success
+	now := metav1.Now()
+	quantumRandomNumber.Status.Status = "Success"
+	quantumRandomNumber.Status.RandomNumberReference = &qubeseciov1.ObjectReference{
+		Name:      secretName,
+		Namespace: quantumRandomNumber.Namespace,
+	}
+	quantumRandomNumber.Status.LastUpdateTime = &now
+	quantumRandomNumber.Status.Error = ""
+	_ = r.Status().Update(ctx, quantumRandomNumber)
 
 	return nil
 }
 
 // generate random number secret
-func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandomNumber *qubeseciov1.QuantumRandomNumber, secretName string, ctx context.Context) (corev1.Secret, float64) {
+func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandomNumber *qubeseciov1.QuantumRandomNumber, secretName string, ctx context.Context) (*corev1.Secret, float64) {
 	// Setup logger
 	log := log.FromContext(ctx)
 
@@ -185,7 +190,7 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandom
 		log.Error(err, "Failed to Set Controller Reference")
 	}
 
-	return *secret, shannonEntropy
+	return secret, shannonEntropy
 }
 
 // Update Status of QuantumRandomNumber
@@ -194,9 +199,13 @@ func (r *QuantumRandomNumberReconciler) UpdateStatus(quantumrandomnumber *qubese
 	log := log.FromContext(ctx)
 
 	// Update status of quantumrandomnumber to reflect the number of bytes of key material generated
+	now := metav1.Now()
+	quantumrandomnumber.Status.Status = "Success"
 	quantumrandomnumber.Status.Bytes = quantumrandomnumber.Spec.Bytes
 	quantumrandomnumber.Status.Algorithm = quantumrandomnumber.Spec.Algorithm
 	quantumrandomnumber.Status.Entropy = fmt.Sprintf("%.12f", shannonEntropy)
+	quantumrandomnumber.Status.LastUpdateTime = &now
+	quantumrandomnumber.Status.Error = ""
 	err := r.Status().Update(ctx, quantumrandomnumber)
 	if err != nil {
 		return err

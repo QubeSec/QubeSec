@@ -67,6 +67,9 @@ func (r *QuantumKEMKeyPairReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	err = r.CreateOrUpdateSecret(quantumKEMKeyPair, ctx)
 	if err != nil {
 		log.Error(err, "Failed to Create or Update Secret")
+		quantumKEMKeyPair.Status.Status = "Failed"
+		quantumKEMKeyPair.Status.Error = err.Error()
+		_ = r.Status().Update(ctx, quantumKEMKeyPair)
 		return ctrl.Result{}, err
 	}
 
@@ -104,39 +107,63 @@ func (r *QuantumKEMKeyPairReconciler) CreateOrUpdateSecret(quantumKEMKeyPair *qu
 		return err
 	}
 
-	// If Secret doesn't exist, create it
-	if err != nil {
-
-		// Generate key pair
-		publicKey, privateKey := keypair.GenerateKEMKeyPair(quantumKEMKeyPair.Spec.Algorithm, ctx)
-
-		// Create Secret object
-		newSecret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
+	// If Secret already exists, update status to Success
+	if err == nil {
+		if quantumKEMKeyPair.Status.Status != "Success" {
+			now := metav1.Now()
+			quantumKEMKeyPair.Status.Status = "Success"
+			quantumKEMKeyPair.Status.KeyPairReference = &qubeseciov1.ObjectReference{
 				Name:      secretName,
 				Namespace: quantumKEMKeyPair.Namespace,
-			},
-			Data: map[string][]byte{
-				"public-key":  []byte(publicKey),
-				"private-key": []byte(privateKey),
-			},
+			}
+			quantumKEMKeyPair.Status.LastUpdateTime = &now
+			quantumKEMKeyPair.Status.Error = ""
+			_ = r.Status().Update(ctx, quantumKEMKeyPair)
 		}
-
-		// Set owner reference to QuantumKEMKeyPair for Secret
-		err := ctrl.SetControllerReference(quantumKEMKeyPair, newSecret, r.Scheme)
-		if err != nil {
-			log.Error(err, "Failed to Set Controller Reference")
-			return err
-		}
-
-		// Create Secret
-		err = r.Create(ctx, newSecret)
-		if err != nil {
-			log.Error(err, "Failed to Create Secret")
-			return err
-		}
-		log.Info("Created Secret")
+		return nil
 	}
+
+	// If Secret doesn't exist, create it
+	// Generate key pair
+	publicKey, privateKey := keypair.GenerateKEMKeyPair(quantumKEMKeyPair.Spec.Algorithm, ctx)
+
+	// Create Secret object
+	newSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: quantumKEMKeyPair.Namespace,
+		},
+		Data: map[string][]byte{
+			"public-key":  []byte(publicKey),
+			"private-key": []byte(privateKey),
+		},
+	}
+
+	// Set owner reference to QuantumKEMKeyPair for Secret
+	err = ctrl.SetControllerReference(quantumKEMKeyPair, newSecret, r.Scheme)
+	if err != nil {
+		log.Error(err, "Failed to Set Controller Reference")
+		return err
+	}
+
+	// Create Secret
+	err = r.Create(ctx, newSecret)
+	if err != nil {
+		log.Error(err, "Failed to Create Secret")
+		return err
+	}
+	log.Info("Created Secret")
+
+	// Update status to Success
+	now := metav1.Now()
+	quantumKEMKeyPair.Status.Status = "Success"
+	quantumKEMKeyPair.Status.KeyPairReference = &qubeseciov1.ObjectReference{
+		Name:      secretName,
+		Namespace: quantumKEMKeyPair.Namespace,
+	}
+	quantumKEMKeyPair.Status.LastUpdateTime = &now
+	quantumKEMKeyPair.Status.Error = ""
+	_ = r.Status().Update(ctx, quantumKEMKeyPair)
 
 	return nil
 }

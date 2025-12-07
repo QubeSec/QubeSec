@@ -38,13 +38,30 @@ type QuantumSignatureKeyPairSpec struct {
 type QuantumSignatureKeyPairStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// Status of key generation
+	// +kubebuilder:validation:Enum=Pending;Success;Failed
+	Status string `json:"status,omitempty"`
+
+	// KeyPairReference points to where the keys are stored
+	KeyPairReference *ObjectReference `json:"keyPairReference,omitempty"`
+
+	// LastUpdateTime is when the key pair was last generated
+	LastUpdateTime *metav1.Time `json:"lastUpdateTime,omitempty"`
+
+	// PublicKeyFingerprint is a hash of the public key (hex-encoded)
+	PublicKeyFingerprint string `json:"publicKeyFingerprint,omitempty"`
+
+	// Error message if generation failed
+	Error string `json:"error,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:shortName=qskp
 //+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+//+kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
 //+kubebuilder:printcolumn:name="Algorithm",type=string,JSONPath=`.spec.algorithm`
+//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // QuantumSignatureKeyPair is the Schema for the quantumsignaturekeypairs API
 type QuantumSignatureKeyPair struct {

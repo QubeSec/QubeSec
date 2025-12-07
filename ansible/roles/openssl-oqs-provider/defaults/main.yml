@@ -1,0 +1,16 @@
+---
+# OpenSSL and OQS Provider versions
+openssl_version: "3.6.0"
+liboqs_version: "0.15.0"
+oqs_provider_version: "0.10.0"
+
+# Installation directories
+openssl_prefix: "/opt/openssl"
+liboqs_prefix: "/opt/liboqs"
+build_dir: "/tmp/oqs-build"
+
+# Build parallelism
+build_threads: "{{ ansible_processor_vcpus | default(4) }}"
+
+# Default groups for OQS provider
+default_groups: "kyber768"

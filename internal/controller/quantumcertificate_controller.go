@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -67,13 +68,14 @@ func (r *QuantumCertificateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	err = r.CreateOrUpdateSecret(quantumCertificate, ctx)
 	if err != nil {
 		log.Error(err, "Failed to Create or Update Secret")
+		quantumCertificate.Status.Status = "Failed"
+		quantumCertificate.Status.Error = err.Error()
+		_ = r.Status().Update(ctx, quantumCertificate)
 		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
-}
-
-// SetupWithManager sets up the controller with the Manager.
+} // SetupWithManager sets up the controller with the Manager.
 func (r *QuantumCertificateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qubeseciov1.QuantumCertificate{}).
@@ -104,43 +106,73 @@ func (r *QuantumCertificateReconciler) CreateOrUpdateSecret(QuantumCertificate *
 		return err
 	}
 
-	// If Secret doesn't exist, create it
-	if err != nil {
-
-		// Generate key pair
-		publicKey, privateKey := certificate.Certificate(
-			QuantumCertificate.Spec.Algorithm,
-			QuantumCertificate.Spec.Domain,
-			QuantumCertificate.Spec.Days,
-		)
-
-		// Create Secret object
-		newSecret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
+	// If Secret already exists, update status to Success
+	if err == nil {
+		if QuantumCertificate.Status.Status != "Success" {
+			now := metav1.Now()
+			QuantumCertificate.Status.Status = "Success"
+			QuantumCertificate.Status.CertificateReference = &qubeseciov1.ObjectReference{
 				Name:      secretName,
 				Namespace: QuantumCertificate.Namespace,
-			},
-			Data: map[string][]byte{
-				"tls.crt": []byte(publicKey),
-				"tls.key": []byte(privateKey),
-			},
+			}
+			QuantumCertificate.Status.LastUpdateTime = &now
+			QuantumCertificate.Status.Error = ""
+			_ = r.Status().Update(ctx, QuantumCertificate)
 		}
-
-		// Set owner reference to QuantumCertificate for Secret
-		err := ctrl.SetControllerReference(QuantumCertificate, newSecret, r.Scheme)
-		if err != nil {
-			log.Error(err, "Failed to Set Controller Reference")
-			return err
-		}
-
-		// Create Secret
-		err = r.Create(ctx, newSecret)
-		if err != nil {
-			log.Error(err, "Failed to Create Secret")
-			return err
-		}
-		log.Info("Created Secret")
+		return nil
 	}
+
+	// If Secret doesn't exist, create it
+	// Generate key pair
+	publicKey, privateKey := certificate.Certificate(
+		QuantumCertificate.Spec.Algorithm,
+		QuantumCertificate.Spec.Domain,
+		QuantumCertificate.Spec.Days,
+	)
+
+	// Check if certificate generation failed
+	if publicKey == "" || privateKey == "" {
+		log.Error(nil, "Certificate generation failed - empty keys returned")
+		return fmt.Errorf("certificate generation failed")
+	}
+
+	// Create Secret object
+	newSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: QuantumCertificate.Namespace,
+		},
+		Data: map[string][]byte{
+			"tls.crt": []byte(publicKey),
+			"tls.key": []byte(privateKey),
+		},
+	}
+
+	// Set owner reference to QuantumCertificate for Secret
+	err = ctrl.SetControllerReference(QuantumCertificate, newSecret, r.Scheme)
+	if err != nil {
+		log.Error(err, "Failed to Set Controller Reference")
+		return err
+	}
+
+	// Create Secret
+	err = r.Create(ctx, newSecret)
+	if err != nil {
+		log.Error(err, "Failed to Create Secret")
+		return err
+	}
+	log.Info("Created Secret")
+
+	// Update status to Success
+	now := metav1.Now()
+	QuantumCertificate.Status.Status = "Success"
+	QuantumCertificate.Status.CertificateReference = &qubeseciov1.ObjectReference{
+		Name:      secretName,
+		Namespace: QuantumCertificate.Namespace,
+	}
+	QuantumCertificate.Status.LastUpdateTime = &now
+	QuantumCertificate.Status.Error = ""
+	_ = r.Status().Update(ctx, QuantumCertificate)
 
 	return nil
 }

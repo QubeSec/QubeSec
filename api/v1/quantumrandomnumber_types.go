@@ -41,18 +41,33 @@ type QuantumRandomNumberSpec struct {
 type QuantumRandomNumberStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// Status of random number generation
+	// +kubebuilder:validation:Enum=Pending;Success;Failed
+	Status string `json:"status,omitempty"`
+
+	// RandomNumberReference points to where the random data is stored
+	RandomNumberReference *ObjectReference `json:"randomNumberReference,omitempty"`
+
+	// LastUpdateTime is when the random number was last generated
+	LastUpdateTime *metav1.Time `json:"lastUpdateTime,omitempty"`
+
 	Bytes     int    `json:"bytes,omitempty"`
 	Algorithm string `json:"algorithm,omitempty"`
 	Entropy   string `json:"entropy,omitempty"`
+
+	// Error message if generation failed
+	Error string `json:"error,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:shortName=qrn;qrng
 //+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+//+kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
 //+kubebuilder:printcolumn:name="Bytes",type=integer,JSONPath=`.status.bytes`
 //+kubebuilder:printcolumn:name="Algorithm",type=string,JSONPath=`.status.algorithm`
 //+kubebuilder:printcolumn:name="Entropy",type=string,JSONPath=`.status.entropy`
+//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // QuantumRandomNumber is the Schema for the quantumrandomnumbers API
 type QuantumRandomNumber struct {
