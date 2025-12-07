@@ -4,4 +4,5 @@ resources:
 - _v1_quantumkemkeypair.yaml
 - _v1_quantumsignaturekeypair.yaml
 - _v1_quantumcertificate.yaml
+- v1_quantumsharedsecret.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

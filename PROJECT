@@ -44,4 +44,12 @@ resources:
   kind: QuantumCertificate
   path: github.com/QubeSec/QubeSec/api/v1
   version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: qubesec.io
+  kind: QuantumSharedSecret
+  path: github.com/QubeSec/QubeSec/api/v1
+  version: v1
 version: "3"

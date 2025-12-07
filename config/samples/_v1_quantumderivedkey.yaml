@@ -1,0 +1,28 @@
+apiVersion: qubesec.io/v1
+kind: QuantumDerivedKey
+metadata:
+  labels:
+    app.kubernetes.io/name: quantumderivedkey
+    app.kubernetes.io/instance: quantumderivedkey-sample
+    app.kubernetes.io/part-of: qubesec
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: qubesec
+  name: quantumderivedkey-sample
+spec:
+  # Reference to the QuantumSharedSecret that contains the shared secret
+  sharedSecretRef:
+    name: quantumsharedsecret-sample
+    namespace: default
+  
+  # Type of key to derive (AES-256 for encryption, etc.)
+  keyType: AES-256
+  
+  # Optional: Salt for HKDF (hex-encoded), if not provided empty salt is used
+  salt: ""
+  
+  # Optional: Info for HKDF (hex-encoded), if not provided empty info is used
+  info: ""
+  
+  # Optional: Name of secret to store the derived key in
+  # If not provided, a secret will be created with a generated name
+  secretName: derived-aes256-key

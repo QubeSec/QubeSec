@@ -2,6 +2,9 @@
 - name: Setup liboqs
   hosts: all
   roles:
+    - role: docker
+    - role: minikube
+    - role: kubectl
     - role: golang
     - role: liboqs
     - role: liboqs-go

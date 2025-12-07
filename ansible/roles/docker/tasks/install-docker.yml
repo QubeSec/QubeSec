@@ -1,0 +1,68 @@
+---
+- name: Install dependencies
+  apt:
+    name: "{{ packages }}"
+    update_cache: yes
+  vars:
+    packages:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg
+    - lsb-release
+
+- name: Download Docker GPG Key
+  get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /tmp/docker.gpg
+
+- name: Add Docker GPG Key
+  command: gpg
+    --yes
+    --dearmor
+    --output /etc/apt/trusted.gpg.d/docker-archive-keyring.gpg
+    /tmp/docker.gpg
+
+- name: Delete Docker GPG Key - tmp file
+  file:
+    path: /tmp/docker.gpg
+    state: absent
+
+- name: Add apt repository for stable version
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+
+- name: Install Docker
+  apt:
+    name: "{{ packages }}"
+    update_cache: yes
+  vars:
+    packages:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-buildx-plugin
+    - docker-compose-plugin
+
+- name: Add user to docker group
+  user:
+    name: "{{ ansible_user_id }}"
+    groups: docker
+    append: yes
+
+- name: Fetch the latest Docker Compose tags from GitHub
+  uri:
+    url: "https://api.github.com/repos/docker/compose/tags"
+    return_content: yes
+  register: github_response
+  changed_when: false
+
+- name: Extract the latest Docker Compose version from the API response
+  set_fact:
+    docker_compose_version: "{{ github_response.json | json_query('[0].name') }}"
+
+- name: Download docker-compose {{ docker_compose_version }}
+  get_url:
+    url : https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-{{ ansible_architecture }}
+    dest: /usr/local/bin/docker-compose
+    mode: '+x'

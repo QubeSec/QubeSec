@@ -6,6 +6,7 @@ resources:
 - bases/qubesec.io_quantumkemkeypairs.yaml
 - bases/qubesec.io_quantumsignaturekeypairs.yaml
 - bases/qubesec.io_quantumcertificates.yaml
+- bases/qubesec.io_quantumsharedsecrets.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patches:

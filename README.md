@@ -129,7 +129,7 @@ sudo apt install make build-essential git cmake libssl-dev
 
 Clone liboqs and liboqs-go:
 ```bash
-git clone --depth 1 --branch 0.12.0 https://github.com/open-quantum-safe/liboqs
+git clone --depth 1 --branch 0.15.0 https://github.com/open-quantum-safe/liboqs
 git clone --depth 1 --branch 0.12.0 https://github.com/open-quantum-safe/liboqs-go
 ```
 

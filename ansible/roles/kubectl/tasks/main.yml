@@ -1,0 +1,5 @@
+---
+- import_tasks: add-repo.yml
+  become: yes
+- import_tasks: install-kubectl.yml
+  become: yes
