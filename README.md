@@ -12,7 +12,8 @@ QubeSec leverages [liboqs](https://github.com/open-quantum-safe/liboqs) and [Ope
 - **Key Encapsulation**: Derive shared secrets using KEM encapsulation from public keys
 - **Key Derivation**: Generate AES-256 keys from shared secrets using HKDF-SHA256
 - **Quantum Certificates**: Create X.509 certificates with post-quantum algorithms
-- **Secure Secret Storage**: All keys stored as hex-encoded data in Kubernetes Secrets
+- **Secure Secret Storage**: All keys stored as raw binary data in Kubernetes Secrets
+- **Key Fingerprinting**: SHA256 fingerprints generated for derived keys for verification and audit
 - **Automated Workflows**: Chainable controllers (KEM → Shared Secret → Derived Key)
 
 ### Supported Algorithms
@@ -49,7 +50,17 @@ For step-by-step instructions, environment variable configuration, and command r
 
 ## Key Storage Format
 
-All cryptographic keys (keypairs, certificates, derived keys, shared secrets, random numbers) are stored in Kubernetes Secrets as **hex-encoded** binary data. This ensures consistent and secure binary storage.
+All cryptographic keys (keypairs, certificates, derived keys, shared secrets, random numbers) are stored in Kubernetes Secrets in raw binary data format. This ensures secure and efficient storage.
+
+### QuantumDerivedKey Fingerprint
+
+When deriving keys using QuantumDerivedKey, a **fingerprint** is automatically generated for the derived key. The fingerprint is a SHA256 hash of the derived key and serves the following purposes:
+
+- **Verification**: Verify key integrity and authenticity without exposing the full key
+- **Identification**: Uniquely identify derived keys for audit and compliance purposes
+- **Status Tracking**: Included in the QuantumDerivedKey status for transparency
+
+The fingerprint is stored in **hex-encoded format** for human readability and is available in both the Kubernetes Secret and the status field of the QuantumDerivedKey resource.
 
 For retrieval and inspection examples, see [SETUP.md - Key Storage and Retrieval](SETUP.md#key-storage-and-retrieval).
 
@@ -69,8 +80,6 @@ All intermediate results are stored in Kubernetes Secrets for consumption by oth
 
 ## Infrastructure Setup
 
-For detailed information on role structure, dependencies, and path configuration, see [ansible/ARCHITECTURE.md](ansible/ARCHITECTURE.md).
-
 ## Development
 
 See [SETUP.md](SETUP.md) for:
@@ -82,5 +91,4 @@ See [SETUP.md](SETUP.md) for:
 ## Documentation
 
 - [SETUP.md](SETUP.md) - Complete installation and operation guide
-- [ansible/ARCHITECTURE.md](ansible/ARCHITECTURE.md) - Ansible roles and infrastructure design
 - [api/v1/](api/v1/) - Custom Resource Definitions

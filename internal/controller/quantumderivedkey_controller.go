@@ -152,7 +152,7 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Extract shared secret from secret
-	sharedSecretHex, ok := secret.Data["shared-secret"]
+	sharedSecretBytes, ok := secret.Data["shared-secret"]
 	if !ok {
 		log.Error(nil, "Shared secret not found in secret")
 		quantumDerivedKey.Status.Status = "Failed"
@@ -189,7 +189,7 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Derive AES-256 key
-	derivedKeyHex, err := derivedkey.DeriveAES256Key(string(sharedSecretHex), salt, info, ctx)
+	derivedKey, err := derivedkey.DeriveAES256Key(sharedSecretBytes, salt, info, ctx)
 	if err != nil {
 		log.Error(err, "Failed to derive key")
 		quantumDerivedKey.Status.Status = "Failed"
@@ -199,7 +199,7 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Calculate fingerprint of derived key
-	hash := sha256.Sum256([]byte(derivedKeyHex))
+	hash := sha256.Sum256(derivedKey)
 	fingerprint := hex.EncodeToString(hash[:])
 
 	// Create secret with derived key
@@ -209,7 +209,7 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			Namespace: quantumDerivedKey.Namespace,
 		},
 		Data: map[string][]byte{
-			"derived-key": []byte(derivedKeyHex),
+			"derived-key": derivedKey,
 			"fingerprint": []byte(fingerprint),
 			"key-type":    []byte(quantumDerivedKey.Spec.KeyType),
 		},
@@ -239,6 +239,12 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 	quantumDerivedKey.Status.LastUpdateTime = &now
 	quantumDerivedKey.Status.KeyFingerprint = fingerprint
+	// Set fingerprint hash (first 8 characters) for quick verification
+	if len(fingerprint) >= 8 {
+		quantumDerivedKey.Status.FingerprintHash = fingerprint[:8]
+	} else {
+		quantumDerivedKey.Status.FingerprintHash = fingerprint
+	}
 	quantumDerivedKey.Status.UsedSalt = quantumDerivedKey.Spec.Salt
 	quantumDerivedKey.Status.UsedInfo = quantumDerivedKey.Spec.Info
 	quantumDerivedKey.Status.Error = ""

@@ -144,7 +144,7 @@ func (r *QuantumSharedSecretReconciler) Reconcile(ctx context.Context, req ctrl.
 	}
 
 	// Derive shared secret
-	ciphertextHex, sharedSecretHex, err := sharedsecret.DeriveSharedSecret(
+	ciphertext, sharedSecret, err := sharedsecret.DeriveSharedSecret(
 		quantumSharedSecret.Spec.Algorithm,
 		publicKeyPEM,
 		ctx,
@@ -164,8 +164,8 @@ func (r *QuantumSharedSecretReconciler) Reconcile(ctx context.Context, req ctrl.
 			Namespace: quantumSharedSecret.Namespace,
 		},
 		Data: map[string][]byte{
-			"shared-secret": []byte(sharedSecretHex),
-			"ciphertext":    []byte(ciphertextHex),
+			"shared-secret": sharedSecret,
+			"ciphertext":    ciphertext,
 		},
 	}
 
@@ -187,7 +187,7 @@ func (r *QuantumSharedSecretReconciler) Reconcile(ctx context.Context, req ctrl.
 	// Update status
 	now := metav1.Now()
 	quantumSharedSecret.Status.Status = "Success"
-	quantumSharedSecret.Status.Ciphertext = ciphertextHex
+	quantumSharedSecret.Status.Ciphertext = string(ciphertext)
 	quantumSharedSecret.Status.SharedSecretReference = &qubeseciov1.ObjectReference{
 		Name:      secretName,
 		Namespace: quantumSharedSecret.Namespace,

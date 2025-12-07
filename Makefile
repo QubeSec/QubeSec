@@ -21,6 +21,10 @@ CONTAINER_TOOL ?= docker
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
+# CGO configuration for liboqs
+export CGO_CFLAGS := $(shell pkg-config --cflags liboqs 2>/dev/null || echo "-I/opt/liboqs/include")
+export CGO_LDFLAGS := $(shell pkg-config --libs liboqs 2>/dev/null || echo "-L/opt/liboqs/lib -loqs")
+
 .PHONY: all
 all: build
 

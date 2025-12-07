@@ -189,11 +189,7 @@ All cryptographic keys are stored in Kubernetes Secrets as **hex-encoded** binar
 ### View Secret Keys
 
 ```bash
-# View first 100 hex characters
 kubectl get secret <secret-name> -o jsonpath='{.data.<key>}' | base64 -d
-
-# Convert hex to ASCII (for PEM keys)
-kubectl get secret <secret-name> -o jsonpath='{.data.<key>}' | base64 -d | xxd -r -p
 ```
 
 ### Inspect Quantum Certificates
@@ -202,11 +198,15 @@ kubectl get secret <secret-name> -o jsonpath='{.data.<key>}' | base64 -d | xxd -
 # For post-quantum certificates with oqs-provider
 kubectl get secret quantumcertificate-sample-tls \
   -o jsonpath='{.data.tls\.crt}' | \
-  base64 -d | xxd -r -p | openssl x509 -text -noout
+  base64 -d | openssl x509 -text -noout
+```
 
-# Or view the raw hex
-kubectl get secret quantumcertificate-sample-tls \
-  -o jsonpath='{.data.tls\.crt}' | base64 -d | head -c 100
+### Retrieve Public Key from QuantumKEMKeyPair
+
+```bash
+kubectl get secret quantumkemkeypair-sample-keys \
+  -o jsonpath='{.data.public-key}' | \
+  base64 -d
 ```
 
 ## Custom Resource Abbreviations

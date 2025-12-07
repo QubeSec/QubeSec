@@ -69,7 +69,7 @@
     content: |
       export PATH="{{ openssl_prefix }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
       export LD_LIBRARY_PATH="{{ openssl_prefix }}/lib:{{ openssl_prefix }}/lib64:{{ liboqs_prefix }}/lib"
-      export PKG_CONFIG_PATH="{{ openssl_prefix }}/lib/pkgconfig:{{ openssl_prefix }}/lib64/pkgconfig:{{ liboqs_prefix }}/lib/pkgconfig"
+      export PKG_CONFIG_PATH="{{ openssl_prefix }}/lib/pkgconfig:{{ openssl_prefix }}/lib64/pkgconfig:{{ liboqs_prefix }}/lib/pkgconfig:/opt/liboqs-go/.config"
       export DEFAULT_GROUPS="{{ default_groups }}"
     mode: '0755'
 

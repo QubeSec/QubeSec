@@ -19,7 +19,6 @@ package derivedkey
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/hex"
 	"io"
 
 	"golang.org/x/crypto/hkdf"
@@ -28,15 +27,8 @@ import (
 
 // DeriveAES256Key derives an AES-256 key using HKDF from a shared secret
 // If no salt is provided, an empty salt is used (deterministic behavior)
-func DeriveAES256Key(sharedSecretHex string, salt []byte, info []byte, ctx context.Context) (string, error) {
+func DeriveAES256Key(sharedSecret []byte, salt []byte, info []byte, ctx context.Context) ([]byte, error) {
 	log := log.FromContext(ctx)
-
-	// Decode shared secret from hex
-	sharedSecret, err := hex.DecodeString(sharedSecretHex)
-	if err != nil {
-		log.Error(err, "Failed to decode shared secret")
-		return "", err
-	}
 
 	// Use HKDF to derive AES-256 key (32 bytes)
 	// Note: If salt is nil/empty, HKDF uses an empty salt for deterministic derivation
@@ -46,9 +38,8 @@ func DeriveAES256Key(sharedSecretHex string, salt []byte, info []byte, ctx conte
 	derivedKey := make([]byte, 32) // 32 bytes = 256 bits for AES-256
 	if _, err := io.ReadFull(hkdf, derivedKey); err != nil {
 		log.Error(err, "Failed to derive key using HKDF")
-		return "", err
+		return nil, err
 	}
 
-	derivedKeyHex := hex.EncodeToString(derivedKey)
-	return derivedKeyHex, nil
+	return derivedKey, nil
 }
