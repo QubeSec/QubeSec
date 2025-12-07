@@ -113,7 +113,7 @@ spec:
                 description: Error message if derivation failed
                 type: string
               fingerprintHash:
-                description: FingerprintHash is the first 8 characters of the key
+                description: FingerprintHash is the first 12 characters of the key
                   fingerprint for quick verification
                 type: string
               keyFingerprint:
