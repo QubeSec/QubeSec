@@ -1,5 +1,9 @@
 # QubeSec
 
+<div align="center">
+  <img src="assets/qubesec.png" alt="QubeSec Logo" width="200">
+</div>
+
 A Kubernetes operator for post-quantum cryptography providing custom resource definitions (CRDs) and controllers for quantum-safe key generation, key encapsulation, key derivation, and certificate management.
 
 ## Overview
