@@ -63,19 +63,27 @@
     backup: yes
   become: yes
 
-- name: Set environment variables for oqs-provider in /etc/profile.d
+- name: Create environment setup script in /opt
   copy:
-    dest: /etc/profile.d/oqs-provider.sh
+    dest: /opt/oqs-setup.sh
     content: |
-      export PATH="{{ openssl_prefix }}/bin:${PATH}"
-      export LD_LIBRARY_PATH="{{ openssl_prefix }}/lib:{{ openssl_prefix }}/lib64:{{ liboqs_prefix }}/lib:${LD_LIBRARY_PATH}"
-      export PKG_CONFIG_PATH="{{ openssl_prefix }}/lib/pkgconfig:{{ openssl_prefix }}/lib64/pkgconfig:{{ liboqs_prefix }}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+      export PATH="{{ openssl_prefix }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      export LD_LIBRARY_PATH="{{ openssl_prefix }}/lib:{{ openssl_prefix }}/lib64:{{ liboqs_prefix }}/lib"
+      export PKG_CONFIG_PATH="{{ openssl_prefix }}/lib/pkgconfig:{{ openssl_prefix }}/lib64/pkgconfig:{{ liboqs_prefix }}/lib/pkgconfig"
       export DEFAULT_GROUPS="{{ default_groups }}"
-    mode: '0644'
-  become: yes
+    mode: '0755'
+
+- name: Source environment setup in user bashrc
+  lineinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: "source /opt/oqs-setup.sh"
+    state: present
+    create: yes
 
 - name: Verify oqs-provider availability
-  shell: "{{ openssl_prefix }}/bin/openssl list -providers -verbose"
+  shell: |
+    source /opt/oqs-setup.sh
+    {{ openssl_prefix }}/bin/openssl list -providers -verbose
   register: providers_check
   changed_when: false
   ignore_errors: yes
