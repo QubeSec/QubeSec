@@ -9,4 +9,6 @@ metadata:
     app.kubernetes.io/created-by: qubesec
   name: quantumkemkeypair-sample
 spec:
-  algorithm: Kyber1024
+  algorithm: ML-KEM-1024
+  # Optional custom secret name for the generated key pair
+  secretName: quantumkemkeypair-sample-keys

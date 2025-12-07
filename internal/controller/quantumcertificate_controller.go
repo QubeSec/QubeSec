@@ -85,10 +85,15 @@ func (r *QuantumCertificateReconciler) CreateOrUpdateSecret(QuantumCertificate *
 	// Setup logger
 	log := log.FromContext(ctx)
 
+	secretName := QuantumCertificate.Spec.SecretName
+	if secretName == "" {
+		secretName = QuantumCertificate.Name
+	}
+
 	// Create Secret object
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      QuantumCertificate.Name,
+			Name:      secretName,
 			Namespace: QuantumCertificate.Namespace,
 		},
 	}
@@ -112,7 +117,7 @@ func (r *QuantumCertificateReconciler) CreateOrUpdateSecret(QuantumCertificate *
 		// Create Secret object
 		newSecret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      QuantumCertificate.Name,
+				Name:      secretName,
 				Namespace: QuantumCertificate.Namespace,
 			},
 			StringData: map[string]string{

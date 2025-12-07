@@ -32,6 +32,8 @@ type QuantumCertificateSpec struct {
 	Algorithm string `json:"algorithm,omitempty"`
 	Domain    string `json:"domain,omitempty"`
 	Days      int    `json:"days,omitempty"`
+	// Optional name of the Secret to store certificate and key. Defaults to resource name.
+	SecretName string `json:"secretName,omitempty"`
 }
 
 // QuantumCertificateStatus defines the observed state of QuantumCertificate

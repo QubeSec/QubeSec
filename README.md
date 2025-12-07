@@ -78,6 +78,11 @@ kubectl apply -k config/samples/
 kubectl delete -k config/samples/
 ```
 
+Get the custom resources:
+```bash
+kubectl get qc,qdk,qkkp,qrn,qss,qskp
+```
+
 Export the docker image:
 ```bash
 export IMG=qubesec/qubesec:v0.1.22

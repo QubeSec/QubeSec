@@ -1,0 +1,134 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: quantumderivedkeys.qubesec.io
+spec:
+  group: qubesec.io
+  names:
+    kind: QuantumDerivedKey
+    listKind: QuantumDerivedKeyList
+    plural: quantumderivedkeys
+    shortNames:
+    - qdk
+    singular: quantumderivedkey
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    - jsonPath: .spec.keyType
+      name: KeyType
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: QuantumDerivedKey is the Schema for deriving cryptographic keys
+          from shared secrets using HKDF
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: spec defines the desired state of QuantumDerivedKey
+            properties:
+              info:
+                description: Info is optional info string for the HKDF derivation
+                  (hex-encoded)
+                type: string
+              keyType:
+                description: KeyType specifies the type of key to derive (e.g., AES-256,
+                  ChaCha20)
+                enum:
+                - AES-256
+                - ChaCha20
+                - HMAC-SHA256
+                type: string
+              salt:
+                description: Salt is optional salt for the HKDF derivation (hex-encoded)
+                type: string
+              secretName:
+                description: SecretName is the name of the secret to store the derived
+                  key in
+                type: string
+              sharedSecretRef:
+                description: SharedSecretRef is a reference to a QuantumSharedSecret
+                  that contains the shared secret
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+            required:
+            - keyType
+            - sharedSecretRef
+            type: object
+          status:
+            description: status defines the observed state of QuantumDerivedKey
+            properties:
+              derivedKeyReference:
+                description: DerivedKeyReference points to where the derived key is
+                  stored
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              error:
+                description: Error message if derivation failed
+                type: string
+              keyFingerprint:
+                description: KeyFingerprint is a hash of the derived key for verification
+                  (hex-encoded)
+                type: string
+              lastUpdateTime:
+                description: LastUpdateTime is when the key was last derived
+                format: date-time
+                type: string
+              status:
+                description: Status of the key derivation
+                enum:
+                - Pending
+                - Success
+                - Failed
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

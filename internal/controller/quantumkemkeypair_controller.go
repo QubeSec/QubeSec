@@ -85,10 +85,15 @@ func (r *QuantumKEMKeyPairReconciler) CreateOrUpdateSecret(quantumKEMKeyPair *qu
 	// Setup logger
 	log := log.FromContext(ctx)
 
+	secretName := quantumKEMKeyPair.Spec.SecretName
+	if secretName == "" {
+		secretName = quantumKEMKeyPair.Name
+	}
+
 	// Create Secret object
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      quantumKEMKeyPair.Name,
+			Name:      secretName,
 			Namespace: quantumKEMKeyPair.Namespace,
 		},
 	}
@@ -108,12 +113,12 @@ func (r *QuantumKEMKeyPairReconciler) CreateOrUpdateSecret(quantumKEMKeyPair *qu
 		// Create Secret object
 		newSecret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      quantumKEMKeyPair.Name,
+				Name:      secretName,
 				Namespace: quantumKEMKeyPair.Namespace,
 			},
 			StringData: map[string]string{
-				"quantumPublicKey":  publicKey,
-				"quantumPrivateKey": privateKey,
+				"public-key":  publicKey,
+				"private-key": privateKey,
 			},
 		}
 

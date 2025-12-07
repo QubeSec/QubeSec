@@ -28,7 +28,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	qubeseciov1 "github.com/QubeSec/QubeSec/api/v1"
-	"github.com/QubeSec/QubeSec/internal/keypair"
+	"github.com/QubeSec/QubeSec/internal/sharedsecret"
 )
 
 // QuantumSharedSecretReconciler reconciles a QuantumSharedSecret object
@@ -54,6 +54,50 @@ func (r *QuantumSharedSecretReconciler) Reconcile(ctx context.Context, req ctrl.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// Check if secret already exists - if so, skip reconciliation
+	secretName := quantumSharedSecret.Spec.SecretName
+	if secretName == "" {
+		secretName = fmt.Sprintf("%s-shared-secret", quantumSharedSecret.Name)
+	}
+
+	existingSecret := &corev1.Secret{}
+	err := r.Get(ctx, client.ObjectKey{
+		Name:      secretName,
+		Namespace: quantumSharedSecret.Namespace,
+	}, existingSecret)
+
+	if err == nil {
+		// Secret already exists, check if status is already set
+		if quantumSharedSecret.Status.Status == "Success" && quantumSharedSecret.Status.SharedSecretReference != nil {
+			return ctrl.Result{}, nil
+		}
+		// Update status to reflect existing secret only if not already set
+		if quantumSharedSecret.Status.Status != "Success" {
+			// Get the ciphertext from the secret
+			ciphertext := string(existingSecret.Data["ciphertext"])
+
+			now := metav1.Now()
+			quantumSharedSecret.Status.Status = "Success"
+			quantumSharedSecret.Status.SharedSecretReference = &qubeseciov1.ObjectReference{
+				Name:      secretName,
+				Namespace: quantumSharedSecret.Namespace,
+			}
+			quantumSharedSecret.Status.LastUpdateTime = &now
+			quantumSharedSecret.Status.Ciphertext = ciphertext
+			quantumSharedSecret.Status.Error = ""
+
+			if err := r.Status().Update(ctx, quantumSharedSecret); err != nil {
+				log.Error(err, "Failed to update status for existing secret")
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+
+	if client.IgnoreNotFound(err) != nil {
+		return ctrl.Result{}, err
+	}
+
 	// Get the referenced QuantumKEMKeyPair
 	namespace := quantumSharedSecret.Spec.PublicKeyRef.Namespace
 	if namespace == "" {
@@ -73,10 +117,13 @@ func (r *QuantumSharedSecretReconciler) Reconcile(ctx context.Context, req ctrl.
 	}
 
 	// Get the public key from the secret created by QuantumKEMKeyPair
-	secretName := quantumSharedSecret.Spec.PublicKeyRef.Name
+	kemSecretName := kemKeyPair.Spec.SecretName
+	if kemSecretName == "" {
+		kemSecretName = quantumSharedSecret.Spec.PublicKeyRef.Name
+	}
 	secret := &corev1.Secret{}
 	if err := r.Get(ctx, client.ObjectKey{
-		Name:      secretName,
+		Name:      kemSecretName,
 		Namespace: namespace,
 	}, secret); err != nil {
 		log.Error(err, "Failed to get public key secret")
@@ -97,7 +144,7 @@ func (r *QuantumSharedSecretReconciler) Reconcile(ctx context.Context, req ctrl.
 	}
 
 	// Derive shared secret
-	ciphertextHex, sharedSecretHex, err := keypair.DeriveSharedSecret(
+	ciphertextHex, sharedSecretHex, err := sharedsecret.DeriveSharedSecret(
 		quantumSharedSecret.Spec.Algorithm,
 		publicKeyPEM,
 		ctx,
@@ -111,11 +158,6 @@ func (r *QuantumSharedSecretReconciler) Reconcile(ctx context.Context, req ctrl.
 	}
 
 	// Create secret with shared secret and ciphertext
-	secretName = quantumSharedSecret.Spec.SecretName
-	if secretName == "" {
-		secretName = fmt.Sprintf("%s-shared-secret", quantumSharedSecret.Name)
-	}
-
 	derivedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
@@ -133,15 +175,13 @@ func (r *QuantumSharedSecretReconciler) Reconcile(ctx context.Context, req ctrl.
 		return ctrl.Result{}, err
 	}
 
-	// Create or update secret
+	// Create secret
 	if err := r.Create(ctx, derivedSecret); err != nil {
-		if client.IgnoreAlreadyExists(err) != nil {
-			log.Error(err, "Failed to create secret")
-			quantumSharedSecret.Status.Status = "Failed"
-			quantumSharedSecret.Status.Error = fmt.Sprintf("Failed to create secret: %v", err)
-			_ = r.Status().Update(ctx, quantumSharedSecret)
-			return ctrl.Result{}, err
-		}
+		log.Error(err, "Failed to create secret")
+		quantumSharedSecret.Status.Status = "Failed"
+		quantumSharedSecret.Status.Error = fmt.Sprintf("Failed to create secret: %v", err)
+		_ = r.Status().Update(ctx, quantumSharedSecret)
+		return ctrl.Result{}, err
 	}
 
 	// Update status
@@ -168,6 +208,7 @@ func (r *QuantumSharedSecretReconciler) Reconcile(ctx context.Context, req ctrl.
 func (r *QuantumSharedSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qubeseciov1.QuantumSharedSecret{}).
+		Owns(&corev1.Secret{}). // Watch Secret objects owned by QuantumSharedSecret
 		Named("quantumsharedsecret").
 		Complete(r)
 }

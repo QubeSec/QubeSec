@@ -30,6 +30,8 @@ type QuantumKEMKeyPairSpec struct {
 
 	// Foo is an example field of QuantumKEMKeyPair. Edit QuantumKEMKeyPair_types.go to remove/update
 	Algorithm string `json:"algorithm,omitempty"`
+	// Optional name of the Secret to store public/private keys. Defaults to resource name.
+	SecretName string `json:"secretName,omitempty"`
 }
 
 // QuantumKEMKeyPairStatus defines the observed state of QuantumKEMKeyPair

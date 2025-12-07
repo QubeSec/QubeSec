@@ -20,8 +20,10 @@ rules:
   - qubesec.io
   resources:
   - quantumcertificates
+  - quantumderivedkeys
   - quantumkemkeypairs
   - quantumrandomnumbers
+  - quantumsharedsecrets
   - quantumsignaturekeypairs
   verbs:
   - create
@@ -35,8 +37,10 @@ rules:
   - qubesec.io
   resources:
   - quantumcertificates/finalizers
+  - quantumderivedkeys/finalizers
   - quantumkemkeypairs/finalizers
   - quantumrandomnumbers/finalizers
+  - quantumsharedsecrets/finalizers
   - quantumsignaturekeypairs/finalizers
   verbs:
   - update
@@ -44,8 +48,10 @@ rules:
   - qubesec.io
   resources:
   - quantumcertificates/status
+  - quantumderivedkeys/status
   - quantumkemkeypairs/status
   - quantumrandomnumbers/status
+  - quantumsharedsecrets/status
   - quantumsignaturekeypairs/status
   verbs:
   - get

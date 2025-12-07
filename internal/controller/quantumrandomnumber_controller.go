@@ -91,10 +91,15 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumRandomNumber
 	// Setup logger
 	log := log.FromContext(ctx)
 
+	secretName := quantumRandomNumber.Spec.SecretName
+	if secretName == "" {
+		secretName = quantumRandomNumber.Name
+	}
+
 	// Create Secret object
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      quantumRandomNumber.Name,
+			Name:      secretName,
 			Namespace: quantumRandomNumber.Namespace,
 		},
 	}
@@ -108,7 +113,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumRandomNumber
 	// If Secret doesn't exist, create it
 	if err != nil {
 
-		secret, shannonEntropy := r.GenerateRandomNumberSecret(quantumRandomNumber, ctx)
+		secret, shannonEntropy := r.GenerateRandomNumberSecret(quantumRandomNumber, secretName, ctx)
 
 		// Create Secret
 		err = r.Create(ctx, &secret)
@@ -129,7 +134,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumRandomNumber
 		if quantumRandomNumber.Status.Bytes != quantumRandomNumber.Spec.Bytes ||
 			quantumRandomNumber.Status.Algorithm != quantumRandomNumber.Spec.Algorithm {
 
-			secret, shannonEntropy := r.GenerateRandomNumberSecret(quantumRandomNumber, ctx)
+			secret, shannonEntropy := r.GenerateRandomNumberSecret(quantumRandomNumber, secretName, ctx)
 
 			// Update Secret
 			err = r.Update(ctx, &secret)
@@ -150,7 +155,7 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumRandomNumber
 }
 
 // generate random number secret
-func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandomNumber *qubeseciov1.QuantumRandomNumber, ctx context.Context) (corev1.Secret, float64) {
+func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandomNumber *qubeseciov1.QuantumRandomNumber, secretName string, ctx context.Context) (corev1.Secret, float64) {
 	// Setup logger
 	log := log.FromContext(ctx)
 
@@ -166,7 +171,7 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandom
 	// Create Secret object with quantum random number
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      quantumRandomNumber.Name,
+			Name:      secretName,
 			Namespace: quantumRandomNumber.Namespace,
 		},
 		StringData: map[string]string{

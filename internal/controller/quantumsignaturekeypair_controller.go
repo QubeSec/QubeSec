@@ -85,10 +85,15 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 	// Setup logger
 	log := log.FromContext(ctx)
 
+	secretName := quantumSignatureKeyPair.Spec.SecretName
+	if secretName == "" {
+		secretName = quantumSignatureKeyPair.Name
+	}
+
 	// Create Secret object
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      quantumSignatureKeyPair.Name,
+			Name:      secretName,
 			Namespace: quantumSignatureKeyPair.Namespace,
 		},
 	}
@@ -108,12 +113,12 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 		// Create Secret object
 		newSecret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      quantumSignatureKeyPair.Name,
+				Name:      secretName,
 				Namespace: quantumSignatureKeyPair.Namespace,
 			},
 			StringData: map[string]string{
-				"quantumPublicKey":  publicKey,
-				"quantumPrivateKey": privateKey,
+				"public-key":  publicKey,
+				"private-key": privateKey,
 			},
 		}
 

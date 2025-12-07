@@ -30,7 +30,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	qubeseciov1 "github.com/QubeSec/QubeSec/api/v1"
-	"github.com/QubeSec/QubeSec/internal/keypair"
+	"github.com/QubeSec/QubeSec/internal/derivedkey"
 )
 
 // QuantumDerivedKeyReconciler reconciles a QuantumDerivedKey object
@@ -54,6 +54,50 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	quantumDerivedKey := &qubeseciov1.QuantumDerivedKey{}
 	if err := r.Get(ctx, req.NamespacedName, quantumDerivedKey); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Check if secret already exists - if so, skip reconciliation
+	secretName := quantumDerivedKey.Spec.SecretName
+	if secretName == "" {
+		secretName = fmt.Sprintf("%s-derived-key", quantumDerivedKey.Name)
+	}
+
+	existingSecret := &corev1.Secret{}
+	err := r.Get(ctx, client.ObjectKey{
+		Name:      secretName,
+		Namespace: quantumDerivedKey.Namespace,
+	}, existingSecret)
+
+	if err == nil {
+		// Secret already exists, check if status is already set
+		if quantumDerivedKey.Status.Status == "Success" && quantumDerivedKey.Status.DerivedKeyReference != nil {
+			return ctrl.Result{}, nil
+		}
+		// Update status to reflect existing secret only if not already set
+		if quantumDerivedKey.Status.Status != "Success" {
+			// Get the fingerprint from the secret
+			fingerprint := string(existingSecret.Data["fingerprint"])
+
+			now := metav1.Now()
+			quantumDerivedKey.Status.Status = "Success"
+			quantumDerivedKey.Status.DerivedKeyReference = &qubeseciov1.ObjectReference{
+				Name:      secretName,
+				Namespace: quantumDerivedKey.Namespace,
+			}
+			quantumDerivedKey.Status.LastUpdateTime = &now
+			quantumDerivedKey.Status.KeyFingerprint = fingerprint
+			quantumDerivedKey.Status.Error = ""
+
+			if err := r.Status().Update(ctx, quantumDerivedKey); err != nil {
+				log.Error(err, "Failed to update status for existing secret")
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+
+	if client.IgnoreNotFound(err) != nil {
+		return ctrl.Result{}, err
 	}
 
 	// Get the referenced QuantumSharedSecret
@@ -143,7 +187,7 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Derive AES-256 key
-	derivedKeyHex, err := keypair.DeriveAES256Key(string(sharedSecretHex), salt, info, ctx)
+	derivedKeyHex, err := derivedkey.DeriveAES256Key(string(sharedSecretHex), salt, info, ctx)
 	if err != nil {
 		log.Error(err, "Failed to derive key")
 		quantumDerivedKey.Status.Status = "Failed"
@@ -157,20 +201,15 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	fingerprint := hex.EncodeToString(hash[:])
 
 	// Create secret with derived key
-	secretName := quantumDerivedKey.Spec.SecretName
-	if secretName == "" {
-		secretName = fmt.Sprintf("%s-derived-key", quantumDerivedKey.Name)
-	}
-
 	derivedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
 			Namespace: quantumDerivedKey.Namespace,
 		},
 		Data: map[string][]byte{
-			"derived-key":   []byte(derivedKeyHex),
-			"fingerprint":   []byte(fingerprint),
-			"key-type":      []byte(quantumDerivedKey.Spec.KeyType),
+			"derived-key": []byte(derivedKeyHex),
+			"fingerprint": []byte(fingerprint),
+			"key-type":    []byte(quantumDerivedKey.Spec.KeyType),
 		},
 	}
 
@@ -180,15 +219,13 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// Create or update secret
+	// Create secret
 	if err := r.Create(ctx, derivedSecret); err != nil {
-		if client.IgnoreAlreadyExists(err) != nil {
-			log.Error(err, "Failed to create secret")
-			quantumDerivedKey.Status.Status = "Failed"
-			quantumDerivedKey.Status.Error = fmt.Sprintf("Failed to create secret: %v", err)
-			_ = r.Status().Update(ctx, quantumDerivedKey)
-			return ctrl.Result{}, err
-		}
+		log.Error(err, "Failed to create secret")
+		quantumDerivedKey.Status.Status = "Failed"
+		quantumDerivedKey.Status.Error = fmt.Sprintf("Failed to create secret: %v", err)
+		_ = r.Status().Update(ctx, quantumDerivedKey)
+		return ctrl.Result{}, err
 	}
 
 	// Update status
@@ -215,6 +252,7 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 func (r *QuantumDerivedKeyReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qubeseciov1.QuantumDerivedKey{}).
+		Owns(&corev1.Secret{}). // Watch Secret objects owned by QuantumDerivedKey
 		Named("quantumderivedkey").
 		Complete(r)
 }

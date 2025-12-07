@@ -33,6 +33,8 @@ type QuantumRandomNumberSpec struct {
 	Algorithm string `json:"algorithm,omitempty"`
 	Seed      string `json:"seed,omitempty"`
 	SeedURI   string `json:"seedURI,omitempty"`
+	// Optional name of the Secret to store the random number. Defaults to resource name.
+	SecretName string `json:"secretName,omitempty"`
 }
 
 // QuantumRandomNumberStatus defines the observed state of QuantumRandomNumber

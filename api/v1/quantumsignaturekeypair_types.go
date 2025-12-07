@@ -30,6 +30,8 @@ type QuantumSignatureKeyPairSpec struct {
 
 	// Foo is an example field of QuantumSignatureKeyPair. Edit quantumsignaturekeypair_types.go to remove/update
 	Algorithm string `json:"algorithm,omitempty"`
+	// Optional name of the Secret to store public/private keys. Defaults to resource name.
+	SecretName string `json:"secretName,omitempty"`
 }
 
 // QuantumSignatureKeyPairStatus defines the observed state of QuantumSignatureKeyPair

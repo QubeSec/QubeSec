@@ -9,7 +9,9 @@ metadata:
     app.kubernetes.io/created-by: qubesec
   name: quantumcertificate-sample
 spec:
-  algorithm: "dilithium5"
+  algorithm: "ML-DSA-87"
   # algorithm: "rsa"
   domain: "example.com"
   days: 365
+  # Optional custom secret name for the certificate (tls.crt/tls.key)
+  secretName: quantumcertificate-sample-tls
