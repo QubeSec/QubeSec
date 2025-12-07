@@ -18,7 +18,6 @@ package derivedkey
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
@@ -28,6 +27,7 @@ import (
 )
 
 // DeriveAES256Key derives an AES-256 key using HKDF from a shared secret
+// If no salt is provided, an empty salt is used (deterministic behavior)
 func DeriveAES256Key(sharedSecretHex string, salt []byte, info []byte, ctx context.Context) (string, error) {
 	log := log.FromContext(ctx)
 
@@ -38,16 +38,8 @@ func DeriveAES256Key(sharedSecretHex string, salt []byte, info []byte, ctx conte
 		return "", err
 	}
 
-	// If no salt provided, generate random salt
-	if len(salt) == 0 {
-		salt = make([]byte, 32)
-		if _, err := rand.Read(salt); err != nil {
-			log.Error(err, "Failed to generate salt")
-			return "", err
-		}
-	}
-
 	// Use HKDF to derive AES-256 key (32 bytes)
+	// Note: If salt is nil/empty, HKDF uses an empty salt for deterministic derivation
 	hash := sha256.New
 	hkdf := hkdf.New(hash, sharedSecret, salt, info)
 

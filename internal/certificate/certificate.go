@@ -1,6 +1,7 @@
 package certificate
 
 import (
+	"encoding/hex"
 	"fmt"
 	"os"
 	"os/exec"
@@ -101,5 +102,7 @@ func readFile(filename string) (string, error) {
 		return "", err
 	}
 
-	return string(content), nil
+	// Convert file content to hex encoding
+	hexContent := hex.EncodeToString(content)
+	return hexContent, nil
 }

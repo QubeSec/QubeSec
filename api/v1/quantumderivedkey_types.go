@@ -65,6 +65,12 @@ type QuantumDerivedKeyStatus struct {
 	// KeyFingerprint is a hash of the derived key for verification (hex-encoded)
 	KeyFingerprint string `json:"keyFingerprint,omitempty"`
 
+	// UsedSalt is the salt that was used in the derivation (hex-encoded or empty if not used)
+	UsedSalt string `json:"usedSalt,omitempty"`
+
+	// UsedInfo is the info that was used in the derivation (hex-encoded or empty if not used)
+	UsedInfo string `json:"usedInfo,omitempty"`
+
 	// Error message if derivation failed
 	Error string `json:"error,omitempty"`
 }

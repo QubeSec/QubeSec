@@ -3,6 +3,7 @@ package keypair
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/pem"
 
 	"github.com/open-quantum-safe/liboqs-go/oqs"
@@ -86,5 +87,9 @@ func generatePEMBlock(publicKey []byte, privateKey []byte, algorithm string, ctx
 		log.Error(err, "Failed to encode private key")
 	}
 
-	return publicKeyRow.String(), privateKeyRow.String()
+	// Convert PEM strings to hex encoding
+	publicKeyHex := hex.EncodeToString(publicKeyRow.Bytes())
+	privateKeyHex := hex.EncodeToString(privateKeyRow.Bytes())
+
+	return publicKeyHex, privateKeyHex
 }

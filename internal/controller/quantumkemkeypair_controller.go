@@ -116,9 +116,9 @@ func (r *QuantumKEMKeyPairReconciler) CreateOrUpdateSecret(quantumKEMKeyPair *qu
 				Name:      secretName,
 				Namespace: quantumKEMKeyPair.Namespace,
 			},
-			StringData: map[string]string{
-				"public-key":  publicKey,
-				"private-key": privateKey,
+			Data: map[string][]byte{
+				"public-key":  []byte(publicKey),
+				"private-key": []byte(privateKey),
 			},
 		}
 

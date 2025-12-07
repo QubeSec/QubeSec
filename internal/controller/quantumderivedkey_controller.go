@@ -86,6 +86,8 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			}
 			quantumDerivedKey.Status.LastUpdateTime = &now
 			quantumDerivedKey.Status.KeyFingerprint = fingerprint
+			quantumDerivedKey.Status.UsedSalt = quantumDerivedKey.Spec.Salt
+			quantumDerivedKey.Status.UsedInfo = quantumDerivedKey.Spec.Info
 			quantumDerivedKey.Status.Error = ""
 
 			if err := r.Status().Update(ctx, quantumDerivedKey); err != nil {
@@ -237,6 +239,8 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 	quantumDerivedKey.Status.LastUpdateTime = &now
 	quantumDerivedKey.Status.KeyFingerprint = fingerprint
+	quantumDerivedKey.Status.UsedSalt = quantumDerivedKey.Spec.Salt
+	quantumDerivedKey.Status.UsedInfo = quantumDerivedKey.Spec.Info
 	quantumDerivedKey.Status.Error = ""
 
 	if err := r.Status().Update(ctx, quantumDerivedKey); err != nil {

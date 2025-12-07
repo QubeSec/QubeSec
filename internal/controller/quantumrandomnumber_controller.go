@@ -174,8 +174,8 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandom
 			Name:      secretName,
 			Namespace: quantumRandomNumber.Namespace,
 		},
-		StringData: map[string]string{
-			"quantumrandomnumber": string(randomNumber),
+		Data: map[string][]byte{
+			"quantumrandomnumber": randomNumber,
 		},
 	}
 

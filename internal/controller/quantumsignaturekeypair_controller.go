@@ -116,9 +116,9 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 				Name:      secretName,
 				Namespace: quantumSignatureKeyPair.Namespace,
 			},
-			StringData: map[string]string{
-				"public-key":  publicKey,
-				"private-key": privateKey,
+			Data: map[string][]byte{
+				"public-key":  []byte(publicKey),
+				"private-key": []byte(privateKey),
 			},
 		}
 

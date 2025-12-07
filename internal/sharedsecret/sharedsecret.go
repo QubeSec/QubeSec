@@ -27,8 +27,14 @@ import (
 )
 
 // DeriveSharedSecret uses KEM to encapsulate and derive a shared secret
-func DeriveSharedSecret(algorithm string, publicKeyPEM []byte, ctx context.Context) (string, string, error) {
+func DeriveSharedSecret(algorithm string, publicKeyHex []byte, ctx context.Context) (string, string, error) {
 	log := log.FromContext(ctx)
+
+	// Decode hex to get PEM bytes
+	publicKeyPEM, err := hex.DecodeString(string(publicKeyHex))
+	if err != nil {
+		return "", "", fmt.Errorf("failed to decode hex public key: %w", err)
+	}
 
 	// Decode PEM block
 	block, _ := pem.Decode(publicKeyPEM)
@@ -42,7 +48,7 @@ func DeriveSharedSecret(algorithm string, publicKeyPEM []byte, ctx context.Conte
 	quantumKEM := oqs.KeyEncapsulation{}
 	defer quantumKEM.Clean()
 
-	err := quantumKEM.Init(algorithm, nil)
+	err = quantumKEM.Init(algorithm, nil)
 	if err != nil {
 		log.Error(err, "Failed to initialize KEM")
 		return "", "", err

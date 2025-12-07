@@ -120,9 +120,9 @@ func (r *QuantumCertificateReconciler) CreateOrUpdateSecret(QuantumCertificate *
 				Name:      secretName,
 				Namespace: QuantumCertificate.Namespace,
 			},
-			StringData: map[string]string{
-				"tls.crt": publicKey,
-				"tls.key": privateKey,
+			Data: map[string][]byte{
+				"tls.crt": []byte(publicKey),
+				"tls.key": []byte(privateKey),
 			},
 		}
 

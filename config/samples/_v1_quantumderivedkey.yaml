@@ -17,10 +17,13 @@ spec:
   # Type of key to derive (AES-256 for encryption, etc.)
   keyType: AES-256
   
-  # Optional: Salt for HKDF (hex-encoded), if not provided empty salt is used
+  # Optional: Salt for HKDF (hex-encoded)
+  # If not provided, an empty salt is used for deterministic derivation
+  # To get the same key every time, use the same salt (or leave empty)
   salt: ""
   
-  # Optional: Info for HKDF (hex-encoded), if not provided empty info is used
+  # Optional: Info for HKDF (hex-encoded)
+  # If not provided, empty info is used
   info: ""
   
   # Optional: Name of secret to store the derived key in

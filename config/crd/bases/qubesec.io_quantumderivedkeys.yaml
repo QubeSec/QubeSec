@@ -124,6 +124,14 @@ spec:
                 - Success
                 - Failed
                 type: string
+              usedInfo:
+                description: UsedInfo is the info that was used in the derivation
+                  (hex-encoded or empty if not used)
+                type: string
+              usedSalt:
+                description: UsedSalt is the salt that was used in the derivation
+                  (hex-encoded or empty if not used)
+                type: string
             type: object
         required:
         - spec
