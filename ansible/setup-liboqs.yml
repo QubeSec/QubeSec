@@ -1,0 +1,10 @@
+---
+- name: Setup liboqs
+  hosts: all
+  roles:
+    - role: golang
+    - role: liboqs
+    - role: liboqs-go
+  vars:
+    liboqs_version: "0.15.0"
+    liboqs_go_version: "0.12.0"

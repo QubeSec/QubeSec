@@ -1,0 +1,30 @@
+---
+- name: Install system prerequisites
+  become: yes
+  apt:
+    name:
+      - build-essential
+      - git
+      - cmake
+      - libssl-dev
+      - make
+      - pkg-config
+
+- name: Clone liboqs {{ liboqs_version }} repository
+  git:
+    repo: https://github.com/open-quantum-safe/liboqs.git
+    dest: "{{ ansible_user_dir }}/liboqs"
+    version: "{{ liboqs_version }}"
+    depth: 1
+
+- name: Build liboqs with CMake
+  become: yes
+  shell: |
+    cd {{ ansible_user_dir }}/liboqs
+    cmake -S . -B build -DBUILD_SHARED_LIBS=ON
+    cmake --build build --parallel 4
+    cmake --build build --target install
+
+- name: Update library cache
+  become: yes
+  command: ldconfig
