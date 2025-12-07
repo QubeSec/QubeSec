@@ -1,0 +1,87 @@
+---
+- name: Clone oqs-provider {{ oqs_provider_version }} repository
+  git:
+    repo: "https://github.com/open-quantum-safe/oqs-provider.git"
+    dest: "{{ build_dir }}/source"
+    version: "{{ oqs_provider_version }}"
+    depth: 1
+  become: yes
+
+- name: Create oqs-provider build directory
+  file:
+    path: "{{ build_dir }}/source/build"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Configure oqs-provider (expects OpenSSL and liboqs already installed)
+  shell: |
+    cd {{ build_dir }}/source/build
+    cmake -G Ninja \
+      -DCMAKE_PREFIX_PATH="{{ openssl_prefix }};{{ liboqs_prefix }}" \
+      -DOPENSSL_DIR={{ openssl_prefix }} \
+      -Dliboqs_DIR={{ liboqs_prefix }}/lib/cmake/liboqs \
+      -DCMAKE_BUILD_TYPE=Release \
+      ..
+  environment:
+    PKG_CONFIG_PATH: "{{ openssl_prefix }}/lib/pkgconfig:{{ openssl_prefix }}/lib64/pkgconfig:{{ liboqs_prefix }}/lib/pkgconfig"
+    LD_LIBRARY_PATH: "{{ openssl_prefix }}/lib:{{ openssl_prefix }}/lib64:{{ liboqs_prefix }}/lib"
+  become: yes
+
+- name: Build oqs-provider
+  shell: |
+    cd {{ build_dir }}/source/build
+    ninja -j{{ build_threads }}
+  register: oqs_build
+  changed_when: "'Building' in oqs_build.stdout"
+  become: yes
+
+- name: Install oqs-provider
+  shell: |
+    cd {{ build_dir }}/source/build
+    ninja install
+  become: yes
+
+- name: Create OpenSSL modules directory
+  file:
+    path: "{{ openssl_prefix }}/lib64/ossl-modules"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Copy oqsprovider module
+  shell: |
+    cp {{ build_dir }}/source/build/oqsprovider.so {{ openssl_prefix }}/lib64/ossl-modules/
+    chmod 755 {{ openssl_prefix }}/lib64/ossl-modules/oqsprovider.so
+  become: yes
+
+- name: Configure OpenSSL to load oqs-provider
+  template:
+    src: openssl.cnf.j2
+    dest: "{{ openssl_prefix }}/ssl/openssl.cnf"
+    mode: '0644'
+    backup: yes
+  become: yes
+
+- name: Set environment variables for oqs-provider in /etc/profile.d
+  copy:
+    dest: /etc/profile.d/oqs-provider.sh
+    content: |
+      export PATH="{{ openssl_prefix }}/bin:${PATH}"
+      export LD_LIBRARY_PATH="{{ openssl_prefix }}/lib:{{ openssl_prefix }}/lib64:{{ liboqs_prefix }}/lib:${LD_LIBRARY_PATH}"
+      export PKG_CONFIG_PATH="{{ openssl_prefix }}/lib/pkgconfig:{{ openssl_prefix }}/lib64/pkgconfig:{{ liboqs_prefix }}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+      export DEFAULT_GROUPS="{{ default_groups }}"
+    mode: '0644'
+  become: yes
+
+- name: Verify oqs-provider availability
+  shell: "{{ openssl_prefix }}/bin/openssl list -providers -verbose"
+  register: providers_check
+  changed_when: false
+  ignore_errors: yes
+
+- name: Display verification results
+  debug:
+    msg: |
+      Providers available:
+      {{ providers_check.stdout | default('Verification skipped') }}

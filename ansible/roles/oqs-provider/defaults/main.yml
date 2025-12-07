@@ -1,0 +1,6 @@
+---
+build_threads: 4
+build_dir: "/opt/oqs-provider-build"
+openssl_prefix: "/opt/openssl"
+liboqs_prefix: "/opt/liboqs"
+default_groups: "kyber768"

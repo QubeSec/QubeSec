@@ -3,3 +3,10 @@
   apt:
     update_cache: yes
     name: kubectl
+
+- name: Enable kubectl bash completion
+  lineinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: 'source <(kubectl completion bash)'
+    create: yes
+    state: present

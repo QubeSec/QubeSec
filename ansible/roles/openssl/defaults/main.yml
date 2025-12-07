@@ -1,0 +1,3 @@
+---
+build_threads: 4
+openssl_prefix: "/opt/openssl"

@@ -1,21 +1,22 @@
 ---
 - name: Clone liboqs-go {{ liboqs_go_version }} repository
+  become: yes
   git:
     repo: https://github.com/open-quantum-safe/liboqs-go.git
-    dest: "{{ ansible_user_dir }}/liboqs-go"
+    dest: "/opt/liboqs-go"
     version: "{{ liboqs_go_version }}"
     depth: 1
 
 - name: Configure pkg-config path
   lineinfile:
     path: "{{ ansible_user_dir }}/.bashrc"
-    line: "export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:{{ ansible_user_dir }}/liboqs-go/.config"
+    line: "export PKG_CONFIG_PATH=/opt/liboqs/lib/pkgconfig:/opt/liboqs-go/.config"
     create: yes
     state: present
 
 - name: Configure LD_LIBRARY_PATH
   lineinfile:
     path: "{{ ansible_user_dir }}/.bashrc"
-    line: "export LD_LIBRARY_PATH=/usr/local/lib"
+    line: "export LD_LIBRARY_PATH=/opt/liboqs/lib:/opt/openssl/lib:/opt/openssl/lib64"
     create: yes
     state: present

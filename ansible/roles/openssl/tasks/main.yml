@@ -1,0 +1,74 @@
+---
+- name: Install build dependencies for OpenSSL
+  become: yes
+  apt:
+    update_cache: yes
+    name:
+      - build-essential
+      - git
+      - cmake
+      - ninja-build
+      - libssl-dev
+      - curl
+      - wget
+      - pkg-config
+      - python3
+
+- name: Create build directory
+  file:
+    path: "/opt/openssl-build"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Clone OpenSSL {{ openssl_version }} repository
+  git:
+    repo: "https://github.com/openssl/openssl.git"
+    dest: "/opt/openssl-build/source"
+    version: "openssl-{{ openssl_version }}"
+    depth: 1
+  become: yes
+
+- name: Configure OpenSSL with RPATH
+  shell: |
+    cd /opt/openssl-build/source
+    ./Configure \
+      linux-x86_64 \
+      --prefix={{ openssl_prefix }} \
+      -Wl,-rpath,{{ openssl_prefix }}/lib
+  environment:
+    LDFLAGS: "-Wl,-rpath,{{ openssl_prefix }}/lib"
+    PKG_CONFIG_PATH: "/opt/liboqs/lib/pkgconfig"
+  become: yes
+
+- name: Build OpenSSL
+  shell: |
+    cd /opt/openssl-build/source
+    make -j{{ build_threads }}
+  register: openssl_build
+  changed_when: "'building' in openssl_build.stdout"
+  become: yes
+
+- name: Install OpenSSL
+  shell: |
+    cd /opt/openssl-build/source
+    make install
+  become: yes
+
+- name: Create OpenSSL lib symlinks
+  file:
+    src: "{{ openssl_prefix }}/lib64"
+    dest: "{{ openssl_prefix }}/lib"
+    state: link
+    force: yes
+  become: yes
+  ignore_errors: yes
+
+- name: Verify OpenSSL installation
+  shell: "{{ openssl_prefix }}/bin/openssl version"
+  register: openssl_version_check
+  changed_when: false
+
+- name: Display OpenSSL version
+  debug:
+    msg: "OpenSSL version: {{ openssl_version_check.stdout }}"

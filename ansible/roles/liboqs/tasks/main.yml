@@ -6,22 +6,24 @@
       - build-essential
       - git
       - cmake
+      - ninja-build
       - libssl-dev
       - make
       - pkg-config
 
 - name: Clone liboqs {{ liboqs_version }} repository
+  become: yes
   git:
     repo: https://github.com/open-quantum-safe/liboqs.git
-    dest: "{{ ansible_user_dir }}/liboqs"
+    dest: "/opt/liboqs"
     version: "{{ liboqs_version }}"
     depth: 1
 
 - name: Build liboqs with CMake
   become: yes
   shell: |
-    cd {{ ansible_user_dir }}/liboqs
-    cmake -S . -B build -DBUILD_SHARED_LIBS=ON
+    cd /opt/liboqs
+    cmake -S . -B build -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/liboqs
     cmake --build build --parallel 4
     cmake --build build --target install
 
