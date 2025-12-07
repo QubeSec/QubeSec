@@ -1,174 +1,86 @@
 # QubeSec
 
+A Kubernetes operator for post-quantum cryptography providing custom resource definitions (CRDs) and controllers for quantum-safe key generation, key encapsulation, key derivation, and certificate management.
+
+## Overview
+
+QubeSec leverages [liboqs](https://github.com/open-quantum-safe/liboqs) and [OpenSSL with oqs-provider](https://github.com/open-quantum-safe/oqs-provider) to integrate post-quantum cryptographic algorithms into Kubernetes. All cryptographic operations are automated through custom controllers that orchestrate the NIST-standardized quantum-safe algorithms (Kyber, Dilithium, etc.).
+
+### Key Features
+
+- **Quantum-Safe Key Generation**: Generate Kyber KEM keypairs and Dilithium signature keypairs
+- **Key Encapsulation**: Derive shared secrets using KEM encapsulation from public keys
+- **Key Derivation**: Generate AES-256 keys from shared secrets using HKDF-SHA256
+- **Quantum Certificates**: Create X.509 certificates with post-quantum algorithms
+- **Secure Secret Storage**: All keys stored as hex-encoded data in Kubernetes Secrets
+- **Automated Workflows**: Chainable controllers (KEM → Shared Secret → Derived Key)
+
+### Supported Algorithms
+
+- **Key Encapsulation**: Kyber (NIST-standardized post-quantum KEM)
+- **Signature**: Dilithium (NIST-standardized post-quantum signature algorithm)
+- **Random Generation**: Go's `crypto/rand` with cryptographically secure randomness
+
+## Custom Resources
+
+| Abbreviation | Resource | Purpose |
+|---|---|---|
+| `qrn` | QuantumRandomNumber | Generate cryptographically secure random bytes |
+| `qkkp` | QuantumKEMKeyPair | Generate Kyber KEM public/private keypairs |
+| `qss` | QuantumSharedSecret | Derive shared secrets via KEM encapsulation |
+| `qdk` | QuantumDerivedKey | Derive AES-256 keys from shared secrets using HKDF |
+| `qskp` | QuantumSignatureKeyPair | Generate Dilithium signature keypairs |
+| `qc` | QuantumCertificate | Create X.509 certificates with quantum algorithms |
+
+## Getting Started
+
+### Quick Setup with Ansible
+
+```bash
+cd ansible
+ansible-playbook setup-liboqs.yml -i hosts.yml
+```
+
+This automates installation of liboqs, OpenSSL with oqs-provider, and Go bindings to `/opt/`.
+
+### Manual Setup
+
+For step-by-step instructions, environment variable configuration, and command reference, see [SETUP.md](SETUP.md).
+
 ## Key Storage Format
 
-All cryptographic keys (PEM-encoded keypairs, certificates, derived keys, shared secrets, random numbers) are stored in Kubernetes Secrets as **hex-encoded** binary data using the `Data` field (not `StringData`). This ensures consistent and secure binary storage.
+All cryptographic keys (keypairs, certificates, derived keys, shared secrets, random numbers) are stored in Kubernetes Secrets as **hex-encoded** binary data. This ensures consistent and secure binary storage.
 
-To decode and inspect:
-```bash
-# View first 100 hex characters
-kubectl get secret <secret-name> -o jsonpath='{.data.<key>}' | base64 -d
+For retrieval and inspection examples, see [SETUP.md - Key Storage and Retrieval](SETUP.md#key-storage-and-retrieval).
 
-# Convert hex to ASCII (for PEM keys)
-kubectl get secret <secret-name> -o jsonpath='{.data.<key>}' | base64 -d | xxd -r -p
+## Architecture
+
+### Workflow Example: Kyber Key Encapsulation and Derivation
+
+```
+1. Create QuantumKEMKeyPair
+   ↓
+2. Create QuantumSharedSecret (references KEM keypair, derives via encapsulation)
+   ↓
+3. Create QuantumDerivedKey (references shared secret, derives AES-256 key via HKDF)
 ```
 
----
+All intermediate results are stored in Kubernetes Secrets for consumption by other workloads.
 
-Initialize the project with kubebuilder:
-```bash
-kubebuilder init \
-  --domain qubesec.io \
-  --repo github.com/QubeSec/QubeSec
-```
+## Infrastructure Setup
 
-Create a new API:
-```bash
-# Implemented:
-kubebuilder create api \
-  --version v1 \
-  --kind QuantumRandomNumber \
-  --resource \
-  --controller
+For detailed information on role structure, dependencies, and path configuration, see [ansible/ARCHITECTURE.md](ansible/ARCHITECTURE.md).
 
-kubebuilder create webhook \
-  --version v1 \
-  --kind QuantumRandomNumber \
-  --defaulting \
-  --programmatic-validation
+## Development
 
-kubebuilder create api \
-  --version v1 \
-  --kind QuantumKEMKeyPair \
-  --resource \
-  --controller
+See [SETUP.md](SETUP.md) for:
+- Kubebuilder initialization and API generation
+- CRD installation and testing
+- Local development and debugging
+- Docker image building and deployment
 
-kubebuilder create api \
-  --version v1 \
-  --kind QuantumSignatureKeyPair \
-  --resource \
-  --controller
+## Documentation
 
-kubebuilder create api \
-  --version v1 \
-  --kind QuantumCertificate \
-  --resource \
-  --controller
-
-# In Discussions:
-kubebuilder create api \
-  --version v1 \
-  --kind QuantumDigitalSignature \
-  --resource \
-  --controller
-
-kubebuilder create api \
-  --version v1 \
-  --kind KeyRequest \
-  --resource \
-  --controller
-```
-
-Generate the manifests:
-```bash
-make generate
-make manifests
-```
-
-Install CRDs into the Kubernetes cluster using kubectl apply:
-```bash
-make install
-make uninstall
-```
-
-Regenerate code and run against the Kubernetes cluster configured by `~/.kube/config`:
-```bash
-export ENABLE_WEBHOOKS=false
-make run
-```
-
-Apply samples for testing operator:
-```bash
-kubectl apply -k config/samples/
-kubectl delete -k config/samples/
-```
-
-Get the custom resources:
-```bash
-kubectl get qc,qdk,qkkp,qrn,qss,qskp
-```
-
-Export the docker image:
-```bash
-export IMG=qubesec/qubesec:v0.1.22
-```
-
-Build the docker image:
-```bash
-make docker-build docker-push
-```
-
-Install cert-manager:
-```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.3/cert-manager.yaml
-```
-
-Load the docker image into minikube:
-```bash
-make docker-build && minikube image load qubesec/qubesec:v0.1.22
-```
-
-Create a deployment:
-```bash
-make deploy
-make undeploy
-```
-
-Generate certificates for serving the webhooks locally:
-```bash
-mkdir -p /tmp/k8s-webhook-server/serving-certs/
-cd /tmp/k8s-webhook-server/serving-certs/
-openssl req -newkey rsa:2048 -nodes -keyout tls.key -x509 -days 365 -out tls.crt
-```
-
-Check the certificate info (note: keys are now stored as hex):
-```bash
-# For post-quantum certificates with oqs-provider:
-kubectl get secret quantumcertificate-sample-tls \
-  -o jsonpath='{.data.tls\.crt}' | \
-  base64 -d | xxd -r -p | openssl x509 -text -noout
-
-# Or view the raw hex:
-kubectl get secret quantumcertificate-sample-tls \
-  -o jsonpath='{.data.tls\.crt}' | base64 -d | head -c 100
-```
-
-**Note**: Quantum certificate generation requires OpenSSL with oqs-provider loaded. See [Ansible Role Setup](#setting-up-with-ansible) for building OpenSSL with oqs-provider support.
-
----
-
-### Enviourment Setup
-
-Install prerequsit:
-```bash
-sudo apt install make build-essential git cmake libssl-dev
-```
-
-Clone liboqs and liboqs-go:
-```bash
-git clone --depth 1 --branch 0.15.0 https://github.com/open-quantum-safe/liboqs
-git clone --depth 1 --branch 0.12.0 https://github.com/open-quantum-safe/liboqs-go
-```
-
-Install liboqs:
-```bash
-cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON
-cmake --build liboqs/build --parallel 4
-sudo cmake --build liboqs/build --target install
-```
-
-Set environment variables: `vim ~/.bashrc`
-```bash
-export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/home/ubuntu/liboqs-go/.config
-export LD_LIBRARY_PATH=/usr/local/lib
-```
+- [SETUP.md](SETUP.md) - Complete installation and operation guide
+- [ansible/ARCHITECTURE.md](ansible/ARCHITECTURE.md) - Ansible roles and infrastructure design
+- [api/v1/](api/v1/) - Custom Resource Definitions
