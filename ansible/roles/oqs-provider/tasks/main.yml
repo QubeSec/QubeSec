@@ -71,6 +71,7 @@
       export LD_LIBRARY_PATH="{{ openssl_prefix }}/lib:{{ openssl_prefix }}/lib64:{{ liboqs_prefix }}/lib"
       export PKG_CONFIG_PATH="{{ openssl_prefix }}/lib/pkgconfig:{{ openssl_prefix }}/lib64/pkgconfig:{{ liboqs_prefix }}/lib/pkgconfig:/opt/liboqs-go/.config"
       export DEFAULT_GROUPS="{{ default_groups }}"
+      export EDITOR="vim"
     mode: '0755'
 
 - name: Source environment setup in user bashrc
