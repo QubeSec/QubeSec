@@ -17,6 +17,6 @@ spec:
   # We need minimum 48 bytes for 256 bit key
   seed: 4vlsXDJD8pxXy0WNpiz10EwlVfEDy9QkObmRbR52OxRUhjY=
   # We accept hex data as seed which will be converted to bytes array
-  seedURI: http://quantum-random-seed.default.svc.cluster.local/?bytes=34
+  # seedURI: http://quantum-random-seed.default.svc.cluster.local/?bytes=34
   # Optional custom secret name for the generated random value
   secretName: quantumrandomnumber-sample-data

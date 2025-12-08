@@ -96,12 +96,6 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "QuantumRandomNumber")
 		os.Exit(1)
 	}
-	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-		if err = (&qubeseciov1.QuantumRandomNumber{}).SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "QuantumRandomNumber")
-			os.Exit(1)
-		}
-	}
 	if err = (&controller.QuantumKEMKeyPairReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),

@@ -128,16 +128,12 @@ make uninstall  # Remove CRDs from cluster
 ### Run Locally (Development)
 
 ```bash
-export ENABLE_WEBHOOKS=false
 make run
 ```
 
 ### Deploy to Cluster
 
 ```bash
-# Install cert-manager (required for webhooks)
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.1/cert-manager.yaml
-
 # Build and deploy
 make deploy     # Deploy operator to cluster
 make undeploy   # Remove operator from cluster
@@ -170,16 +166,6 @@ make docker-build docker-push
 ```bash
 make docker-build
 minikube image load qubesec/qubesec:v0.1.22
-```
-
-## Webhook Certificate Generation
-
-For local webhook testing, generate self-signed certificates:
-
-```bash
-mkdir -p /tmp/k8s-webhook-server/serving-certs/
-cd /tmp/k8s-webhook-server/serving-certs/
-openssl req -newkey rsa:2048 -nodes -keyout tls.key -x509 -days 365 -out tls.crt
 ```
 
 ## Key Storage and Retrieval

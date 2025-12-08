@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: qubesec/qubesec
-  newTag: v0.1.23
+  newTag: main

@@ -18,7 +18,11 @@ package controller
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"io"
+	"net/http"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -66,6 +70,18 @@ func (r *QuantumRandomNumberReconciler) Reconcile(ctx context.Context, req ctrl.
 	if err != nil {
 		log.Error(err, "Failed to get QuantumRandomNumber")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Apply defaults if not already set
+	r.applyDefaults(quantumRandomNumber)
+
+	// Validate the resource
+	if err := r.validateQuantumRandomNumber(quantumRandomNumber); err != nil {
+		log.Error(err, "QuantumRandomNumber validation failed")
+		quantumRandomNumber.Status.Status = "Failed"
+		quantumRandomNumber.Status.Error = err.Error()
+		_ = r.Status().Update(ctx, quantumRandomNumber)
+		return ctrl.Result{}, nil
 	}
 
 	// Create or Update Secret object
@@ -214,3 +230,74 @@ func (r *QuantumRandomNumberReconciler) UpdateStatus(quantumrandomnumber *qubese
 
 	return nil
 }
+
+// applyDefaults sets default values for QuantumRandomNumber
+func (r *QuantumRandomNumberReconciler) applyDefaults(qrng *qubeseciov1.QuantumRandomNumber) {
+	if qrng.Spec.Bytes == 0 {
+		qrng.Spec.Bytes = 32
+	}
+	if qrng.Spec.Algorithm == "" {
+		qrng.Spec.Algorithm = "system"
+	}
+}
+
+// validateQuantumRandomNumber validates the QuantumRandomNumber resource
+func (r *QuantumRandomNumberReconciler) validateQuantumRandomNumber(qrng *qubeseciov1.QuantumRandomNumber) error {
+	// Validate name length (max 52 characters for DNS compatibility)
+	if len(qrng.ObjectMeta.Name) > 52 {
+		return fmt.Errorf("name must be no more than 52 characters, got %d", len(qrng.ObjectMeta.Name))
+	}
+
+	// Validate seed
+	if err := r.validateSeed(qrng); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateSeed validates the seed specification
+func (r *QuantumRandomNumberReconciler) validateSeed(qrng *qubeseciov1.QuantumRandomNumber) error {
+	// If seed is not set but seedURI is provided, fetch it
+	if qrng.Spec.Seed == "" && qrng.Spec.SeedURI != "" {
+		seed, err := r.getSeedFromURI(qrng.Spec.SeedURI)
+		if err != nil {
+			return fmt.Errorf("failed to get seed from URI: %w", err)
+		}
+		qrng.Spec.Seed = seed
+	}
+
+	// Validate seed bytes length (if provided)
+	if qrng.Spec.Seed != "" {
+		seedBytes := []byte(qrng.Spec.Seed)
+		if len(seedBytes) < 48 {
+			return fmt.Errorf("seed length is %d bytes, must be at least 48 bytes", len(seedBytes))
+		}
+	}
+
+	return nil
+}
+
+// getSeedFromURI fetches seed from a URI and converts to base64
+func (r *QuantumRandomNumberReconciler) getSeedFromURI(seedURI string) (string, error) {
+	resp, err := http.Get(seedURI)
+	if err != nil {
+		return "", fmt.Errorf("failed to get seed from %s: %w", seedURI, err)
+	}
+	defer resp.Body.Close()
+
+	hexSeed, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read seed from %s: %w", seedURI, err)
+	}
+
+	seedInBytes, err := hex.DecodeString(string(hexSeed))
+	if err != nil {
+		return "", fmt.Errorf("failed to decode seed from %s: %w", seedURI, err)
+	}
+
+	// Convert hex seed to base64
+	base64Seed := base64.StdEncoding.EncodeToString(seedInBytes)
+	return base64Seed, nil
+}
+
