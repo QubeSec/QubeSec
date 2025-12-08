@@ -75,8 +75,8 @@ func (r *QuantumEncapsulateSecretReconciler) Reconcile(ctx context.Context, req 
 		}
 		// Update status to reflect existing secret only if not already set
 		if quantumEncapsulatedSecret.Status.Status != "Success" {
-			// Get the ciphertext from the secret
-			ciphertext := string(existingSecret.Data["ciphertext"])
+			// Get the ciphertext from the secret (binary data)
+			ciphertextBinary := existingSecret.Data["ciphertext"]
 
 			// Re-fetch the latest version to avoid optimistic locking conflicts
 			if err := r.Get(ctx, req.NamespacedName, quantumEncapsulatedSecret); err != nil {
@@ -94,7 +94,8 @@ func (r *QuantumEncapsulateSecretReconciler) Reconcile(ctx context.Context, req 
 			fingerprint := sha256.Sum256(existingSecret.Data["shared-secret"])
 			quantumEncapsulatedSecret.Status.Fingerprint = hex.EncodeToString(fingerprint[:])[:10]
 			quantumEncapsulatedSecret.Status.LastUpdateTime = &now
-			quantumEncapsulatedSecret.Status.Ciphertext = ciphertext
+			// Hex-encode the binary ciphertext for status (so decapsulate can decode it)
+			quantumEncapsulatedSecret.Status.Ciphertext = hex.EncodeToString(ciphertextBinary)
 			quantumEncapsulatedSecret.Status.Error = ""
 
 			if err := r.Status().Update(ctx, quantumEncapsulatedSecret); err != nil {
