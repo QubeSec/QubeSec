@@ -239,11 +239,11 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 	quantumDerivedKey.Status.LastUpdateTime = &now
 	quantumDerivedKey.Status.KeyFingerprint = fingerprint
-	// Set fingerprint hash (first 12 characters) for quick verification
-	if len(fingerprint) >= 12 {
-		quantumDerivedKey.Status.FingerprintHash = fingerprint[:12]
+	// Set fingerprint preview (first 10 characters) for quick verification
+	if len(fingerprint) >= 10 {
+		quantumDerivedKey.Status.Fingerprint = fingerprint[:10]
 	} else {
-		quantumDerivedKey.Status.FingerprintHash = fingerprint
+		quantumDerivedKey.Status.Fingerprint = fingerprint
 	}
 	quantumDerivedKey.Status.UsedSalt = quantumDerivedKey.Spec.Salt
 	quantumDerivedKey.Status.UsedInfo = quantumDerivedKey.Spec.Info

@@ -23,8 +23,8 @@ spec:
     - jsonPath: .spec.keyType
       name: KeyType
       type: string
-    - jsonPath: .status.fingerprintHash
-      name: FingerprintHash
+    - jsonPath: .status.fingerprint
+      name: Fingerprint
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -112,9 +112,9 @@ spec:
               error:
                 description: Error message if derivation failed
                 type: string
-              fingerprintHash:
-                description: FingerprintHash is the first 12 characters of the key
-                  fingerprint for quick verification
+              fingerprint:
+                description: Fingerprint is the first 10 characters of the key fingerprint
+                  for quick verification
                 type: string
               keyFingerprint:
                 description: KeyFingerprint is a hash of the derived key for verification

@@ -65,8 +65,8 @@ type QuantumDerivedKeyStatus struct {
 	// KeyFingerprint is a hash of the derived key for verification (hex-encoded)
 	KeyFingerprint string `json:"keyFingerprint,omitempty"`
 
-	// FingerprintHash is the first 12 characters of the key fingerprint for quick verification
-	FingerprintHash string `json:"fingerprintHash,omitempty"`
+	// Fingerprint is the first 10 characters of the key fingerprint for quick verification
+	Fingerprint string `json:"fingerprint,omitempty"`
 
 	// UsedSalt is the salt that was used in the derivation (hex-encoded or empty if not used)
 	UsedSalt string `json:"usedSalt,omitempty"`
@@ -83,7 +83,7 @@ type QuantumDerivedKeyStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
 // +kubebuilder:printcolumn:name="KeyType",type=string,JSONPath=`.spec.keyType`
-// +kubebuilder:printcolumn:name="FingerprintHash",type=string,JSONPath=`.status.fingerprintHash`
+// +kubebuilder:printcolumn:name="Fingerprint",type=string,JSONPath=`.status.fingerprint`
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // QuantumDerivedKey is the Schema for deriving cryptographic keys from shared secrets using HKDF

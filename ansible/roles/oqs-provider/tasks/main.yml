@@ -64,6 +64,7 @@
   become: yes
 
 - name: Create environment setup script in /opt
+  become: yes
   copy:
     dest: /opt/oqs-setup.sh
     content: |
