@@ -65,7 +65,7 @@ kubectl get qrn
 
 ```bash
 cd ansible
-ansible-playbook setup-liboqs.yml -i hosts.yml
+ansible-playbook setup-liboqs.yml
 ```
 
 This automates installation of liboqs, OpenSSL with oqs-provider, and Go bindings to `/opt/`.
