@@ -39,7 +39,29 @@ QubeSec leverages [liboqs](https://github.com/open-quantum-safe/liboqs) and [Ope
 
 ## Getting Started
 
-### Quick Setup with Ansible
+### Quick Install (Kubernetes)
+
+Install QubeSec operator and all CRDs with a single command:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/QubeSec/QubeSec/main/dist/install.yaml
+```
+
+Verify installation:
+
+```bash
+kubectl get pods -n qubesec-system
+kubectl get crd | grep qubesec
+```
+
+Create your first quantum resource:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/QubeSec/QubeSec/main/config/samples/_v1_quantumrandomnumber.yaml
+kubectl get qrn
+```
+
+### Development Setup with Ansible
 
 ```bash
 cd ansible

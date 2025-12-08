@@ -2,7 +2,37 @@
 
 This document contains all installation, configuration, and operational commands for QubeSec.
 
-## Quick Start Commands
+## Quick Start
+
+### Install QubeSec Operator (One Command)
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/QubeSec/QubeSec/main/dist/install.yaml
+```
+
+This single command installs:
+- All Custom Resource Definitions (CRDs)
+- QubeSec operator deployment
+- RBAC configurations
+- Namespace and services
+
+### Verify Installation
+
+```bash
+kubectl get pods -n qubesec-system
+kubectl get crd | grep qubesec
+```
+
+### Create Your First Quantum Resources
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/QubeSec/QubeSec/main/config/samples/_v1_quantumrandomnumber.yaml
+kubectl get qrn
+```
+
+---
+
+## Development Setup
 
 ### Initialize the Project with Kubebuilder
 
@@ -134,9 +164,18 @@ make run
 ### Deploy to Cluster
 
 ```bash
-# Build and deploy
+# Quick Install (One-liner)
+kubectl apply -f https://raw.githubusercontent.com/QubeSec/QubeSec/main/dist/install.yaml
+
+# Or build and deploy from source
 make deploy     # Deploy operator to cluster
 make undeploy   # Remove operator from cluster
+```
+
+### Uninstall from Cluster
+
+```bash
+kubectl delete -f https://raw.githubusercontent.com/QubeSec/QubeSec/main/dist/install.yaml
 ```
 
 ### Apply Sample Resources
@@ -153,6 +192,16 @@ kubectl delete -k config/samples/
 ```
 
 ## Docker Operations
+
+### Build Consolidated Installer
+
+Generate a single `install.yaml` file with all CRDs and operator resources:
+
+```bash
+export IMG=qubesec/qubesec:main
+make build-installer
+# Output: dist/install.yaml
+```
 
 ### Build and Push Image
 
