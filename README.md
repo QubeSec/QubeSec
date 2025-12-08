@@ -14,6 +14,7 @@ QubeSec leverages [liboqs](https://github.com/open-quantum-safe/liboqs) and [Ope
 
 - **Quantum-Safe Key Generation**: Generate Kyber KEM keypairs and Dilithium signature keypairs
 - **Key Encapsulation**: Derive shared secrets using KEM encapsulation from public keys
+- **Key Decapsulation**: Recover shared secrets using KEM decapsulation with private key and ciphertext
 - **Key Derivation**: Generate AES-256 keys from shared secrets using HKDF-SHA256
 - **Quantum Certificates**: Create X.509 certificates with post-quantum algorithms
 - **Secure Secret Storage**: All keys stored as raw binary data in Kubernetes Secrets
