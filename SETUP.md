@@ -185,10 +185,99 @@ kubectl delete -f https://raw.githubusercontent.com/QubeSec/QubeSec/main/dist/in
 kubectl apply -k config/samples/
 
 # Verify resource creation
-kubectl get qkkp,qss,qdk,qskp,qc,qrn
+kubectl get qkkp,qes,qds,qdk,qskp,qc,qrn
 
 # Clean up samples
 kubectl delete -k config/samples/
+```
+
+### Quantum Key Encapsulation & Derivation Workflow
+
+The complete quantum-safe key exchange workflow uses three components working together:
+
+#### Step 1: Create a KEM Key Pair
+```bash
+kubectl apply -f config/samples/_v1_quantumkemkeypair.yaml
+kubectl get qkkp quantumkemkeypair-sample
+```
+
+This generates a Kyber (ML-KEM-1024) public/private keypair stored in a Secret.
+
+#### Step 2: Encapsulate to Generate Shared Secret
+```bash
+kubectl apply -f config/samples/_v1_quantumencapsulatesecret.yaml
+kubectl get qes quantumencapsulatesecret-sample
+```
+
+This uses the public key to encapsulate and produces:
+- A **shared secret** stored in Kubernetes Secret `encapsulated-shared-secret`
+- A **ciphertext** stored in the status field (hex-encoded)
+
+#### Step 3: Retrieve and Use the Ciphertext
+```bash
+# Get the ciphertext from encapsulation for decapsulation
+CIPHERTEXT=$(kubectl get qes quantumencapsulatesecret-sample -o jsonpath='{.status.ciphertext}')
+echo "Ciphertext: $CIPHERTEXT"
+
+# View the encapsulated shared secret
+kubectl get secret encapsulated-shared-secret -o jsonpath='{.data.shared-secret}' | base64 -d | xxd -p
+```
+
+#### Step 4: Decapsulate Using Private Key and Ciphertext
+```bash
+# Update the decapsulate sample with the current ciphertext
+kubectl patch -p '{"spec":{"ciphertext":"'$CIPHERTEXT'"}}' \
+  --type merge qds quantumdecapsulatesecret-sample
+
+# Or apply the pre-configured sample (ciphertext must be current)
+kubectl apply -f config/samples/_v1_quantumdecapsulatesecret.yaml
+
+# Verify the decapsulation
+kubectl get qds quantumdecapsulatesecret-sample -o jsonpath='{.status.status}'
+```
+
+The controller will:
+1. Retrieve the private key from the referenced QuantumKEMKeyPair
+2. Decode the hex ciphertext from the spec
+3. Perform KEM decapsulation to recover the shared secret
+4. Store the recovered secret in Kubernetes Secret `decapsulated-shared-secret`
+
+#### Step 5: Verify Encapsulation/Decapsulation are Correct
+```bash
+# Get shared secret from encapsulation
+ENCAP_SECRET=$(kubectl get secret encapsulated-shared-secret -o jsonpath='{.data.shared-secret}' | base64 -d | xxd -p)
+
+# Get shared secret from decapsulation
+DECAP_SECRET=$(kubectl get secret decapsulated-shared-secret -o jsonpath='{.data.shared-secret}' | base64 -d | xxd -p)
+
+# Compare them (must be identical for correct implementation)
+if [ "$ENCAP_SECRET" = "$DECAP_SECRET" ]; then
+  echo "✓ Secrets match! Decapsulation successful."
+else
+  echo "✗ Secrets don't match. Check ciphertext is current."
+fi
+```
+
+#### Step 6: Derive Keys from Either Source
+```bash
+# Option A: Derive from encapsulated secret
+kubectl apply -f config/samples/_v1_quantumderivedkey-from-encapsulated.yaml
+kubectl get qdk quantumderivedkey-from-encapsulated
+
+# Option B: Derive from decapsulated secret
+kubectl apply -f config/samples/_v1_quantumderivedkey-from-decapsulated.yaml
+kubectl get qdk quantumderivedkey-from-decapsulated
+```
+
+Both derived keys will be identical (same fingerprint) if the shared secrets match:
+```bash
+kubectl get qdk -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.fingerprint}{"\n"}{end}'
+```
+
+Expected output shows both resources with the same fingerprint:
+```
+quantumderivedkey-from-decapsulated    d1c312b81f
+quantumderivedkey-from-encapsulated    d1c312b81f
 ```
 
 ## Docker Operations
@@ -250,13 +339,41 @@ kubectl get secret quantumsignaturekeypair-sample-keys \
   -o jsonpath='{.data.public-key}' | base64 -d
 ```
 
+## Cryptographic Architecture
+
+### Workflow Chain
+
+QubeSec implements a complete post-quantum cryptographic workflow:
+
+```
+QuantumKEMKeyPair (Kyber keypair)
+  ↓
+QuantumEncapsulateSecret (public key → encapsulation)
+  ├─ Output: Shared Secret + Ciphertext
+  └─ Can be recovered via:
+      └─ QuantumDecapsulateSecret (private key + ciphertext → same shared secret)
+        ↓
+QuantumDerivedKey (shared secret → AES-256 key via HKDF-SHA256)
+  ├─ Fingerprint: SHA256 hash of derived key
+  └─ Can use either encapsulated or decapsulated secret as source
+```
+
+### Key Properties
+
+- **Deterministic**: Same inputs always produce same outputs
+- **Symmetric Verification**: If encapsulated and decapsulated secrets match, both derived keys will be identical
+- **HKDF-SHA256 Derivation**: Uses optional salt/info parameters for additional entropy
+- **Fingerprinting**: SHA256 hash of derived key for integrity verification
+- **Binary Storage**: Keys stored as raw binary data in Kubernetes Secrets
+
 ## Custom Resource Abbreviations
 
 ```
 qc   = QuantumCertificate
 qdk  = QuantumDerivedKey
+qds  = QuantumDecapsulateSecret
+qes  = QuantumEncapsulateSecret
 qkkp = QuantumKEMKeyPair
 qrn  = QuantumRandomNumber
-qss  = QuantumSharedSecret
 qskp = QuantumSignatureKeyPair
 ```

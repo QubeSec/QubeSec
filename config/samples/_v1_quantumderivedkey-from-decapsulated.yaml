@@ -3,15 +3,17 @@ kind: QuantumDerivedKey
 metadata:
   labels:
     app.kubernetes.io/name: quantumderivedkey
-    app.kubernetes.io/instance: quantumderivedkey-sample
+    app.kubernetes.io/instance: quantumderivedkey-from-decapsulated
     app.kubernetes.io/part-of: qubesec
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: qubesec
-  name: quantumderivedkey-sample
+  name: quantumderivedkey-from-decapsulated
 spec:
-  # Reference to the QuantumSharedSecret that contains the shared secret
+  # Reference to the QuantumDecapsulateSecret that contains the shared secret
+  # This derives a key from the decapsulated shared secret, which should match
+  # the key derived from the encapsulated shared secret
   sharedSecretRef:
-    name: quantumsharedsecret-sample
+    name: quantumdecapsulatesecret-sample
     namespace: default
   
   # Type of key to derive (AES-256 for encryption, etc.)
@@ -19,13 +21,14 @@ spec:
   
   # Optional: Salt for HKDF (hex-encoded)
   # If not provided, an empty salt is used for deterministic derivation
-  # To get the same key every time, use the same salt (or leave empty)
+  # Use the same salt as the encapsulated version to get matching keys
   salt: ""
   
   # Optional: Info for HKDF (hex-encoded)
   # If not provided, empty info is used
+  # Use the same info as the encapsulated version to get matching keys
   info: ""
   
   # Optional: Name of secret to store the derived key in
   # If not provided, a secret will be created with a generated name
-  secretName: derived-aes256-key
+  secretName: derived-aes256-key-from-decapsulated

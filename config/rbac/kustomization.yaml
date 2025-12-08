@@ -20,7 +20,9 @@ resources:
 # default, aiding admins in cluster management. Those roles are
 # not used by the qubesec itself. You can comment the following lines
 # if you do not want those helpers be installed with your Project.
-- quantumsharedsecret_admin_role.yaml
-- quantumsharedsecret_editor_role.yaml
-- quantumsharedsecret_viewer_role.yaml
+- quantumencapsulatesecret_admin_role.yaml
+- quantumencapsulatesecret_editor_role.yaml
+- quantumencapsulatesecret_viewer_role.yaml
+- quantumdecapsulatesecret_editor_role.yaml
+- quantumdecapsulatesecret_viewer_role.yaml
 

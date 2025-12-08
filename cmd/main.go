@@ -117,11 +117,11 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "QuantumCertificate")
 		os.Exit(1)
 	}
-	if err := (&controller.QuantumSharedSecretReconciler{
+	if err := (&controller.QuantumEncapsulateSecretReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "QuantumSharedSecret")
+		setupLog.Error(err, "unable to create controller", "controller", "QuantumEncapsulateSecret")
 		os.Exit(1)
 	}
 	if err := (&controller.QuantumDerivedKeyReconciler{
@@ -129,6 +129,13 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "QuantumDerivedKey")
+		os.Exit(1)
+	}
+	if err := (&controller.QuantumDecapsulateSecretReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "QuantumDecapsulateSecret")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

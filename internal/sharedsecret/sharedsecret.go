@@ -56,3 +56,35 @@ func DeriveSharedSecret(algorithm string, publicKeyPEM []byte, ctx context.Conte
 
 	return ciphertext, sharedSecret, nil
 }
+
+// DecapsulateSharedSecret uses KEM to decapsulate and recover a shared secret
+func DecapsulateSharedSecret(algorithm string, privateKeyPEM []byte, ciphertext []byte, ctx context.Context) ([]byte, error) {
+	log := log.FromContext(ctx)
+
+	// Decode PEM block
+	block, _ := pem.Decode(privateKeyPEM)
+	if block == nil {
+		return nil, fmt.Errorf("failed to decode PEM block")
+	}
+
+	privateKey := block.Bytes
+
+	// Initialize KEM with private key for decapsulation
+	quantumKEM := oqs.KeyEncapsulation{}
+	defer quantumKEM.Clean()
+
+	err := quantumKEM.Init(algorithm, privateKey)
+	if err != nil {
+		log.Error(err, "Failed to initialize KEM")
+		return nil, err
+	}
+
+	// Decapsulate to recover shared secret
+	sharedSecret, err := quantumKEM.DecapSecret(ciphertext)
+	if err != nil {
+		log.Error(err, "Failed to decapsulate secret")
+		return nil, err
+	}
+
+	return sharedSecret, nil
+}

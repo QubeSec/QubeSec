@@ -102,26 +102,45 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// Get the referenced QuantumSharedSecret
+	// Get the referenced shared secret (could be QuantumEncapsulateSecret or QuantumDecapsulateSecret)
 	namespace := quantumDerivedKey.Spec.SharedSecretRef.Namespace
 	if namespace == "" {
 		namespace = quantumDerivedKey.Namespace
 	}
 
-	sharedSecret := &qubeseciov1.QuantumSharedSecret{}
-	if err := r.Get(ctx, client.ObjectKey{
+	// Try to get QuantumEncapsulateSecret first
+	sharedSecretRef := &qubeseciov1.ObjectReference{}
+	sharedSecretStatus := ""
+
+	encapsulateSecret := &qubeseciov1.QuantumEncapsulateSecret{}
+	err = r.Get(ctx, client.ObjectKey{
 		Name:      quantumDerivedKey.Spec.SharedSecretRef.Name,
 		Namespace: namespace,
-	}, sharedSecret); err != nil {
-		log.Error(err, "Failed to get referenced QuantumSharedSecret")
-		quantumDerivedKey.Status.Status = "Failed"
-		quantumDerivedKey.Status.Error = fmt.Sprintf("Failed to get referenced QuantumSharedSecret: %v", err)
-		_ = r.Status().Update(ctx, quantumDerivedKey)
-		return ctrl.Result{}, err
+	}, encapsulateSecret)
+
+	if err == nil {
+		// Found QuantumEncapsulateSecret
+		sharedSecretRef = encapsulateSecret.Status.SharedSecretReference
+		sharedSecretStatus = encapsulateSecret.Status.Status
+	} else {
+		// Try to get QuantumDecapsulateSecret
+		decapsulateSecret := &qubeseciov1.QuantumDecapsulateSecret{}
+		if err := r.Get(ctx, client.ObjectKey{
+			Name:      quantumDerivedKey.Spec.SharedSecretRef.Name,
+			Namespace: namespace,
+		}, decapsulateSecret); err != nil {
+			log.Error(err, "Failed to get referenced QuantumEncapsulateSecret or QuantumDecapsulateSecret")
+			quantumDerivedKey.Status.Status = "Failed"
+			quantumDerivedKey.Status.Error = fmt.Sprintf("Failed to get referenced shared secret: %v", err)
+			_ = r.Status().Update(ctx, quantumDerivedKey)
+			return ctrl.Result{}, err
+		}
+		sharedSecretRef = decapsulateSecret.Status.SharedSecretReference
+		sharedSecretStatus = decapsulateSecret.Status.Status
 	}
 
 	// Check if shared secret is ready
-	if sharedSecret.Status.Status != "Success" {
+	if sharedSecretStatus != "Success" {
 		log.Info("Shared secret not ready yet, waiting...")
 		quantumDerivedKey.Status.Status = "Pending"
 		quantumDerivedKey.Status.Error = "Shared secret not ready"
@@ -130,7 +149,7 @@ func (r *QuantumDerivedKeyReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Get the shared secret from the referenced secret
-	secretRef := sharedSecret.Status.SharedSecretReference
+	secretRef := sharedSecretRef
 	if secretRef == nil {
 		log.Error(nil, "Shared secret reference not set")
 		quantumDerivedKey.Status.Status = "Failed"

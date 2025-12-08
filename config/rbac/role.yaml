@@ -20,10 +20,11 @@ rules:
   - qubesec.io
   resources:
   - quantumcertificates
+  - quantumdecapsulatesecrets
   - quantumderivedkeys
+  - quantumencapsulatesecrets
   - quantumkemkeypairs
   - quantumrandomnumbers
-  - quantumsharedsecrets
   - quantumsignaturekeypairs
   verbs:
   - create
@@ -37,10 +38,11 @@ rules:
   - qubesec.io
   resources:
   - quantumcertificates/finalizers
+  - quantumdecapsulatesecrets/finalizers
   - quantumderivedkeys/finalizers
+  - quantumencapsulatesecrets/finalizers
   - quantumkemkeypairs/finalizers
   - quantumrandomnumbers/finalizers
-  - quantumsharedsecrets/finalizers
   - quantumsignaturekeypairs/finalizers
   verbs:
   - update
@@ -48,12 +50,21 @@ rules:
   - qubesec.io
   resources:
   - quantumcertificates/status
+  - quantumdecapsulatesecrets/status
   - quantumderivedkeys/status
+  - quantumencapsulatesecrets/status
   - quantumkemkeypairs/status
   - quantumrandomnumbers/status
-  - quantumsharedsecrets/status
   - quantumsignaturekeypairs/status
   verbs:
   - get
   - patch
   - update
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumsharedsecrets
+  verbs:
+  - get
+  - list
+  - watch

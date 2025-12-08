@@ -127,6 +127,153 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.19.0
+  name: quantumdecapsulatesecrets.qubesec.io
+spec:
+  group: qubesec.io
+  names:
+    kind: QuantumDecapsulateSecret
+    listKind: QuantumDecapsulateSecretList
+    plural: quantumdecapsulatesecrets
+    shortNames:
+    - qds
+    singular: quantumdecapsulatesecret
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    - jsonPath: .spec.algorithm
+      name: Algorithm
+      type: string
+    - jsonPath: .status.fingerprint
+      name: Fingerprint
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: QuantumDecapsulateSecret is the Schema for decapsulating shared
+          secrets from KEM private keys and ciphertext
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: spec defines the desired state of QuantumDecapsulateSecret
+            properties:
+              algorithm:
+                description: |-
+                  Algorithm is the KEM algorithm to use (e.g., Kyber1024, Kyber768)
+                  Must match the algorithm used during encapsulation
+                type: string
+              ciphertext:
+                description: |-
+                  Ciphertext is the encapsulated ciphertext (hex-encoded) from the encapsulation process
+                  This is typically obtained from a QuantumEncapsulateSecret's status
+                type: string
+              ciphertextRef:
+                description: |-
+                  CiphertextRef optionally points to a QuantumEncapsulateSecret to read ciphertext from status
+                  If provided and ciphertext is empty, the controller will fetch the ciphertext from that resource
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              privateKeyRef:
+                description: PrivateKeyRef is a reference to a QuantumKEMKeyPair that
+                  contains the private key
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              secretName:
+                description: SecretName is the name of the secret to store the decapsulated
+                  shared secret in
+                type: string
+            required:
+            - algorithm
+            - privateKeyRef
+            type: object
+          status:
+            description: status defines the observed state of QuantumDecapsulateSecret
+            properties:
+              error:
+                description: Error message if decapsulation failed
+                type: string
+              fingerprint:
+                description: Fingerprint is the SHA256 hash of the shared secret (first
+                  10 characters)
+                type: string
+              lastUpdateTime:
+                description: LastUpdateTime is when the shared secret was last decapsulated
+                format: date-time
+                type: string
+              sharedSecretReference:
+                description: SharedSecretReference points to where the shared secret
+                  is stored
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              status:
+                description: Status of the shared secret decapsulation
+                enum:
+                - Pending
+                - Success
+                - Failed
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: quantumderivedkeys.qubesec.io
 spec:
   group: qubesec.io
@@ -198,7 +345,7 @@ spec:
                   key in
                 type: string
               sharedSecretRef:
-                description: SharedSecretRef is a reference to a QuantumSharedSecret
+                description: SharedSecretRef is a reference to a QuantumEncapsulateSecret
                   that contains the shared secret
                 properties:
                   name:
@@ -261,6 +408,135 @@ spec:
               usedSalt:
                 description: UsedSalt is the salt that was used in the derivation
                   (hex-encoded or empty if not used)
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: quantumencapsulatesecrets.qubesec.io
+spec:
+  group: qubesec.io
+  names:
+    kind: QuantumEncapsulateSecret
+    listKind: QuantumEncapsulateSecretList
+    plural: quantumencapsulatesecrets
+    shortNames:
+    - qes
+    singular: quantumencapsulatesecret
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    - jsonPath: .spec.algorithm
+      name: Algorithm
+      type: string
+    - jsonPath: .status.fingerprint
+      name: Fingerprint
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: QuantumEncapsulateSecret is the Schema for deriving shared secrets
+          from KEM public keys using encapsulation
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: spec defines the desired state of QuantumEncapsulateSecret
+            properties:
+              algorithm:
+                description: Algorithm is the KEM algorithm to use (e.g., Kyber1024,
+                  Kyber768)
+                type: string
+              publicKeyRef:
+                description: PublicKeyRef is a reference to a QuantumKEMKeyPair that
+                  contains the public key
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              secretName:
+                description: SecretName is the name of the secret to store the shared
+                  secret in
+                type: string
+            required:
+            - algorithm
+            - publicKeyRef
+            type: object
+          status:
+            description: status defines the observed state of QuantumEncapsulateSecret
+            properties:
+              ciphertext:
+                description: Ciphertext is the encapsulated ciphertext (hex-encoded)
+                type: string
+              error:
+                description: Error message if derivation failed
+                type: string
+              fingerprint:
+                description: Fingerprint is the SHA256 hash of the shared secret (first
+                  10 characters)
+                type: string
+              lastUpdateTime:
+                description: LastUpdateTime is when the shared secret was last derived
+                format: date-time
+                type: string
+              sharedSecretReference:
+                description: SharedSecretReference points to where the shared secret
+                  is stored
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              status:
+                description: Status of the shared secret derivation
+                enum:
+                - Pending
+                - Success
+                - Failed
                 type: string
             type: object
         required:
@@ -507,128 +783,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.19.0
-  name: quantumsharedsecrets.qubesec.io
-spec:
-  group: qubesec.io
-  names:
-    kind: QuantumSharedSecret
-    listKind: QuantumSharedSecretList
-    plural: quantumsharedsecrets
-    shortNames:
-    - qss
-    singular: quantumsharedsecret
-  scope: Namespaced
-  versions:
-  - additionalPrinterColumns:
-    - jsonPath: .status.status
-      name: Status
-      type: string
-    - jsonPath: .spec.algorithm
-      name: Algorithm
-      type: string
-    - jsonPath: .metadata.creationTimestamp
-      name: Age
-      type: date
-    name: v1
-    schema:
-      openAPIV3Schema:
-        description: QuantumSharedSecret is the Schema for deriving shared secrets
-          from KEM public keys
-        properties:
-          apiVersion:
-            description: |-
-              APIVersion defines the versioned schema of this representation of an object.
-              Servers should convert recognized schemas to the latest internal value, and
-              may reject unrecognized values.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-            type: string
-          kind:
-            description: |-
-              Kind is a string value representing the REST resource this object represents.
-              Servers may infer this from the endpoint the client submits requests to.
-              Cannot be updated.
-              In CamelCase.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-            type: string
-          metadata:
-            type: object
-          spec:
-            description: spec defines the desired state of QuantumSharedSecret
-            properties:
-              algorithm:
-                description: Algorithm is the KEM algorithm to use (e.g., Kyber1024,
-                  Kyber768)
-                type: string
-              publicKeyRef:
-                description: PublicKeyRef is a reference to a QuantumKEMKeyPair that
-                  contains the public key
-                properties:
-                  name:
-                    description: Name of the referent
-                    type: string
-                  namespace:
-                    description: Namespace of the referent; empty defaults to current
-                      namespace
-                    type: string
-                required:
-                - name
-                type: object
-              secretName:
-                description: SecretName is the name of the secret to store the shared
-                  secret in
-                type: string
-            required:
-            - algorithm
-            - publicKeyRef
-            type: object
-          status:
-            description: status defines the observed state of QuantumSharedSecret
-            properties:
-              ciphertext:
-                description: Ciphertext is the encapsulated ciphertext (hex-encoded)
-                type: string
-              error:
-                description: Error message if derivation failed
-                type: string
-              lastUpdateTime:
-                description: LastUpdateTime is when the shared secret was last derived
-                format: date-time
-                type: string
-              sharedSecretReference:
-                description: SharedSecretReference points to where the shared secret
-                  is stored
-                properties:
-                  name:
-                    description: Name of the referent
-                    type: string
-                  namespace:
-                    description: Namespace of the referent; empty defaults to current
-                      namespace
-                    type: string
-                required:
-                - name
-                type: object
-              status:
-                description: Status of the shared secret derivation
-                enum:
-                - Pending
-                - Success
-                - Failed
-                type: string
-            type: object
-        required:
-        - spec
-        type: object
-    served: true
-    storage: true
-    subresources:
-      status: {}
----
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.19.0
   name: quantumsignaturekeypairs.qubesec.io
 spec:
   group: qubesec.io
@@ -807,10 +961,11 @@ rules:
   - qubesec.io
   resources:
   - quantumcertificates
+  - quantumdecapsulatesecrets
   - quantumderivedkeys
+  - quantumencapsulatesecrets
   - quantumkemkeypairs
   - quantumrandomnumbers
-  - quantumsharedsecrets
   - quantumsignaturekeypairs
   verbs:
   - create
@@ -824,10 +979,11 @@ rules:
   - qubesec.io
   resources:
   - quantumcertificates/finalizers
+  - quantumdecapsulatesecrets/finalizers
   - quantumderivedkeys/finalizers
+  - quantumencapsulatesecrets/finalizers
   - quantumkemkeypairs/finalizers
   - quantumrandomnumbers/finalizers
-  - quantumsharedsecrets/finalizers
   - quantumsignaturekeypairs/finalizers
   verbs:
   - update
@@ -835,15 +991,24 @@ rules:
   - qubesec.io
   resources:
   - quantumcertificates/status
+  - quantumdecapsulatesecrets/status
   - quantumderivedkeys/status
+  - quantumencapsulatesecrets/status
   - quantumkemkeypairs/status
   - quantumrandomnumbers/status
-  - quantumsharedsecrets/status
   - quantumsignaturekeypairs/status
   verbs:
   - get
   - patch
   - update
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumsharedsecrets
+  verbs:
+  - get
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -893,33 +1058,12 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: qubesec
-  name: qubesec-quantumsharedsecret-admin-role
+  name: qubesec-quantumdecapsulatesecret-editor-role
 rules:
 - apiGroups:
   - qubesec.io
   resources:
-  - quantumsharedsecrets
-  verbs:
-  - '*'
-- apiGroups:
-  - qubesec.io
-  resources:
-  - quantumsharedsecrets/status
-  verbs:
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: qubesec
-  name: qubesec-quantumsharedsecret-editor-role
-rules:
-- apiGroups:
-  - qubesec.io
-  resources:
-  - quantumsharedsecrets
+  - quantumdecapsulatesecrets
   verbs:
   - create
   - delete
@@ -931,7 +1075,7 @@ rules:
 - apiGroups:
   - qubesec.io
   resources:
-  - quantumsharedsecrets/status
+  - quantumdecapsulatesecrets/status
   verbs:
   - get
 ---
@@ -941,12 +1085,12 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: qubesec
-  name: qubesec-quantumsharedsecret-viewer-role
+  name: qubesec-quantumdecapsulatesecret-viewer-role
 rules:
 - apiGroups:
   - qubesec.io
   resources:
-  - quantumsharedsecrets
+  - quantumdecapsulatesecrets
   verbs:
   - get
   - list
@@ -954,7 +1098,78 @@ rules:
 - apiGroups:
   - qubesec.io
   resources:
-  - quantumsharedsecrets/status
+  - quantumdecapsulatesecrets/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: qubesec
+  name: qubesec-quantumencapsulatesecret-admin-role
+rules:
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumencapsulatesecrets
+  verbs:
+  - '*'
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumencapsulatesecrets/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: qubesec
+  name: qubesec-quantumencapsulatesecret-editor-role
+rules:
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumencapsulatesecrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumencapsulatesecrets/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: qubesec
+  name: qubesec-quantumencapsulatesecret-viewer-role
+rules:
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumencapsulatesecrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - qubesec.io
+  resources:
+  - quantumencapsulatesecrets/status
   verbs:
   - get
 ---

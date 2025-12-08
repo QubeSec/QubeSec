@@ -25,7 +25,7 @@ type QuantumDerivedKeySpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// SharedSecretRef is a reference to a QuantumSharedSecret that contains the shared secret
+	// SharedSecretRef is a reference to a QuantumEncapsulateSecret that contains the shared secret
 	// +kubebuilder:validation:Required
 	SharedSecretRef ObjectReference `json:"sharedSecretRef"`
 

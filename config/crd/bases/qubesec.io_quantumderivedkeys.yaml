@@ -75,7 +75,7 @@ spec:
                   key in
                 type: string
               sharedSecretRef:
-                description: SharedSecretRef is a reference to a QuantumSharedSecret
+                description: SharedSecretRef is a reference to a QuantumEncapsulateSecret
                   that contains the shared secret
                 properties:
                   name:

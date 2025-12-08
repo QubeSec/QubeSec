@@ -17,7 +17,8 @@ QubeSec leverages [liboqs](https://github.com/open-quantum-safe/liboqs) and [Ope
 - **Key Derivation**: Generate AES-256 keys from shared secrets using HKDF-SHA256
 - **Quantum Certificates**: Create X.509 certificates with post-quantum algorithms
 - **Secure Secret Storage**: All keys stored as raw binary data in Kubernetes Secrets
-- **Key Fingerprinting**: SHA256 fingerprints generated for derived keys for verification and audit
+- **Key Fingerprinting**: SHA256 fingerprints generated for shared secrets (encap/decap) and derived keys for verification and audit
+- **Ciphertext Bridging**: Decapsulation can pull ciphertext directly from a referenced QuantumEncapsulateSecret status (or via inline spec.ciphertext)
 - **Automated Workflows**: Chainable controllers (KEM → Shared Secret → Derived Key)
 
 ### Supported Algorithms
@@ -32,8 +33,9 @@ QubeSec leverages [liboqs](https://github.com/open-quantum-safe/liboqs) and [Ope
 |---|---|---|
 | `qrn` | QuantumRandomNumber | Generate cryptographically secure random bytes |
 | `qkkp` | QuantumKEMKeyPair | Generate Kyber KEM public/private keypairs |
-| `qss` | QuantumSharedSecret | Derive shared secrets via KEM encapsulation |
-| `qdk` | QuantumDerivedKey | Derive AES-256 keys from shared secrets using HKDF |
+| `qes` | QuantumEncapsulateSecret | Derive shared secrets via KEM encapsulation from public key |
+| `qds` | QuantumDecapsulateSecret | Recover shared secrets via KEM decapsulation using private key + ciphertext |
+| `qdk` | QuantumDerivedKey | Derive AES-256 keys from shared secrets using HKDF-SHA256 |
 | `qskp` | QuantumSignatureKeyPair | Generate Dilithium signature keypairs |
 | `qc` | QuantumCertificate | Create X.509 certificates with quantum algorithms |
 
@@ -78,29 +80,41 @@ For step-by-step instructions, environment variable configuration, and command r
 
 All cryptographic keys (keypairs, certificates, derived keys, shared secrets, random numbers) are stored in Kubernetes Secrets in raw binary data format. This ensures secure and efficient storage.
 
-### QuantumDerivedKey Fingerprint
+### Fingerprints (Shared Secrets & Derived Keys)
 
-When deriving keys using QuantumDerivedKey, a **fingerprint** is automatically generated for the derived key. The fingerprint is a SHA256 hash of the derived key and serves the following purposes:
+- **Encapsulate / Decapsulate**: Both `QuantumEncapsulateSecret` and `QuantumDecapsulateSecret` compute a SHA256 fingerprint of the shared secret (first 10 hex chars) and expose it in `.status.fingerprint` and kubectl printer columns.
+- **Derived Keys**: `QuantumDerivedKey` also fingerprints the derived key for audit/verification.
+- **Usage**: Compare fingerprints across resources to confirm the same shared secret and derived key were produced without revealing key material.
 
-- **Verification**: Verify key integrity and authenticity without exposing the full key
-- **Identification**: Uniquely identify derived keys for audit and compliance purposes
-- **Status Tracking**: Included in the QuantumDerivedKey status for transparency
-
-The fingerprint is stored in **hex-encoded format** for human readability and is available in both the Kubernetes Secret and the status field of the QuantumDerivedKey resource.
-
-For retrieval and inspection examples, see [SETUP.md - Key Storage and Retrieval](SETUP.md#key-storage-and-retrieval).
+Fingerprints are hex-encoded for readability. See [SETUP.md - Key Storage and Retrieval](SETUP.md#key-storage-and-retrieval) for retrieval examples.
 
 ## Architecture
 
-### Workflow Example: Kyber Key Encapsulation and Derivation
+### Workflow Example: Complete Quantum-Safe Key Exchange
 
 ```
-1. Create QuantumKEMKeyPair
-   ↓
-2. Create QuantumSharedSecret (references KEM keypair, derives via encapsulation)
-   ↓
-3. Create QuantumDerivedKey (references shared secret, derives AES-256 key via HKDF)
+1. QuantumKEMKeyPair
+   ├─ Generates Kyber (ML-KEM-1024) keypair
+   └─ Stored in Kubernetes Secret
+
+2. QuantumEncapsulateSecret
+   ├─ Uses public key to encapsulate
+   ├─ Generates shared secret + ciphertext
+   └─ Stored in Kubernetes Secret
+
+3. QuantumDecapsulateSecret (Optional - for verification)
+   ├─ Uses private key + ciphertext (inline `spec.ciphertext` or auto-fetched via `spec.ciphertextRef` from QuantumEncapsulateSecret status)
+   ├─ Recovers the same shared secret
+   └─ Validates correctness of encapsulation/decapsulation
+
+4. QuantumDerivedKey
+   ├─ Uses shared secret (from either source)
+   ├─ Derives AES-256 key via HKDF-SHA256
+   ├─ Both sources produce identical derived keys
+   └─ Stored in Kubernetes Secret
 ```
+
+**Key Verification**: If you encapsulate and decapsulate using the same keypair and ciphertext, both sources will produce identical derived keys (same fingerprint). This verifies the correctness of your quantum-safe key exchange.
 
 All intermediate results are stored in Kubernetes Secrets for consumption by other workloads.
 

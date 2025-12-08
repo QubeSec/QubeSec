@@ -23,8 +23,8 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// QuantumSharedSecretSpec defines the desired state of QuantumSharedSecret
-type QuantumSharedSecretSpec struct {
+// QuantumEncapsulateSecretSpec defines the desired state of QuantumEncapsulateSecret
+type QuantumEncapsulateSecretSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -52,8 +52,8 @@ type ObjectReference struct {
 	Namespace string `json:"namespace,omitempty"`
 }
 
-// QuantumSharedSecretStatus defines the observed state of QuantumSharedSecret.
-type QuantumSharedSecretStatus struct {
+// QuantumEncapsulateSecretStatus defines the observed state of QuantumEncapsulateSecret.
+type QuantumEncapsulateSecretStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -67,6 +67,9 @@ type QuantumSharedSecretStatus struct {
 	// SharedSecretReference points to where the shared secret is stored
 	SharedSecretReference *ObjectReference `json:"sharedSecretReference,omitempty"`
 
+	// Fingerprint is the SHA256 hash of the shared secret (first 10 characters)
+	Fingerprint string `json:"fingerprint,omitempty"`
+
 	// LastUpdateTime is when the shared secret was last derived
 	LastUpdateTime *metav1.Time `json:"lastUpdateTime,omitempty"`
 
@@ -75,38 +78,39 @@ type QuantumSharedSecretStatus struct {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:shortName=qss
+// +kubebuilder:resource:shortName=qes
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
 // +kubebuilder:printcolumn:name="Algorithm",type=string,JSONPath=`.spec.algorithm`
+// +kubebuilder:printcolumn:name="Fingerprint",type=string,JSONPath=`.status.fingerprint`
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
-// QuantumSharedSecret is the Schema for deriving shared secrets from KEM public keys
-type QuantumSharedSecret struct {
+// QuantumEncapsulateSecret is the Schema for deriving shared secrets from KEM public keys using encapsulation
+type QuantumEncapsulateSecret struct {
 	metav1.TypeMeta `json:",inline"`
 
 	// metadata is a standard object metadata
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitzero"`
 
-	// spec defines the desired state of QuantumSharedSecret
+	// spec defines the desired state of QuantumEncapsulateSecret
 	// +required
-	Spec QuantumSharedSecretSpec `json:"spec"`
+	Spec QuantumEncapsulateSecretSpec `json:"spec"`
 
-	// status defines the observed state of QuantumSharedSecret
+	// status defines the observed state of QuantumEncapsulateSecret
 	// +optional
-	Status QuantumSharedSecretStatus `json:"status,omitzero"`
+	Status QuantumEncapsulateSecretStatus `json:"status,omitzero"`
 }
 
 // +kubebuilder:object:root=true
 
-// QuantumSharedSecretList contains a list of QuantumSharedSecret
-type QuantumSharedSecretList struct {
+// QuantumEncapsulateSecretList contains a list of QuantumEncapsulateSecret
+type QuantumEncapsulateSecretList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitzero"`
-	Items           []QuantumSharedSecret `json:"items"`
+	Items           []QuantumEncapsulateSecret `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&QuantumSharedSecret{}, &QuantumSharedSecretList{})
+	SchemeBuilder.Register(&QuantumEncapsulateSecret{}, &QuantumEncapsulateSecretList{})
 }
