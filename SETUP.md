@@ -136,7 +136,7 @@ make run
 
 ```bash
 # Install cert-manager (required for webhooks)
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.3/cert-manager.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.1/cert-manager.yaml
 
 # Build and deploy
 make deploy     # Deploy operator to cluster
@@ -205,8 +205,14 @@ kubectl get secret quantumcertificate-sample-tls \
 
 ```bash
 kubectl get secret quantumkemkeypair-sample-keys \
-  -o jsonpath='{.data.public-key}' | \
-  base64 -d
+  -o jsonpath='{.data.public-key}' | base64 -d
+```
+
+### Retrieve Public Key from QuantumSignatureKeyPair
+
+```bash
+kubectl get secret quantumsignaturekeypair-sample-keys \
+  -o jsonpath='{.data.public-key}' | base64 -d
 ```
 
 ## Custom Resource Abbreviations
