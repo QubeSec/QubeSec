@@ -91,6 +91,41 @@ Fingerprints are hex-encoded for readability. See [SETUP.md - Key Storage and Re
 
 ## Architecture
 
+### Quantum-Safe Key Exchange between Alice and Bob
+
+```mermaid
+sequenceDiagram
+    participant Alice
+    participant Bob
+    
+    Note over Alice: Step 1: Generate KEM Keypair
+    Alice->>Alice: QuantumKEMKeyPair (Kyber)
+    Alice->>Alice: Generate (PublicKey, PrivateKey)
+    
+    Note over Alice,Bob: Step 2: Alice shares Public Key with Bob
+    Alice->>Bob: Send PublicKey
+    
+    Note over Bob: Step 3: Bob Encapsulates
+    Bob->>Bob: QuantumEncapsulateSecret
+    Bob->>Bob: Encapsulate(PublicKey) → SharedSecret + Ciphertext
+    
+    Note over Alice,Bob: Step 4: Bob sends Ciphertext to Alice
+    Bob->>Alice: Send Ciphertext
+    
+    Note over Alice: Step 5: Alice Decapsulates
+    Alice->>Alice: QuantumDecapsulateSecret
+    Alice->>Alice: Decapsulate(PrivateKey, Ciphertext) → SharedSecret
+    
+    Note over Alice,Bob: Result: Both have identical SharedSecret
+    Alice->>Alice: QuantumDerivedKey (HKDF-SHA256)
+    Alice->>Alice: Derive AES-256 Key from SharedSecret
+    Bob->>Bob: QuantumDerivedKey (HKDF-SHA256)
+    Bob->>Bob: Derive AES-256 Key from SharedSecret
+    
+    Note over Alice,Bob: ✓ Both Alice & Bob have identical AES-256 Key
+    Note over Alice,Bob: ✓ Fingerprints match for verification
+```
+
 ### Workflow Example: Complete Quantum-Safe Key Exchange
 
 ```
