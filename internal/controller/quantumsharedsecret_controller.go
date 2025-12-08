@@ -76,6 +76,12 @@ func (r *QuantumSharedSecretReconciler) Reconcile(ctx context.Context, req ctrl.
 			// Get the ciphertext from the secret
 			ciphertext := string(existingSecret.Data["ciphertext"])
 
+			// Re-fetch the latest version to avoid optimistic locking conflicts
+			if err := r.Get(ctx, req.NamespacedName, quantumSharedSecret); err != nil {
+				log.Error(err, "Failed to re-fetch QuantumSharedSecret before status update")
+				return ctrl.Result{}, client.IgnoreNotFound(err)
+			}
+
 			now := metav1.Now()
 			quantumSharedSecret.Status.Status = "Success"
 			quantumSharedSecret.Status.SharedSecretReference = &qubeseciov1.ObjectReference{
