@@ -300,4 +300,3 @@ func (r *QuantumRandomNumberReconciler) getSeedFromURI(seedURI string) (string, 
 	base64Seed := base64.StdEncoding.EncodeToString(seedInBytes)
 	return base64Seed, nil
 }
-

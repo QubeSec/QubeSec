@@ -146,7 +146,7 @@ make undeploy   # Remove operator from cluster
 kubectl apply -k config/samples/
 
 # Verify resource creation
-kubectl get qc,qdk,qkkp,qrn,qss,qskp
+kubectl get qkkp,qss,qdk,qskp,qc,qrn
 
 # Clean up samples
 kubectl delete -k config/samples/
