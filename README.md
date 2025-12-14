@@ -44,7 +44,7 @@ Verify installation:
 
 ```bash
 kubectl get pods -n qubesec-system
-kubectl get crd | grep qubesec
+kubectl api-resources | grep qubesec
 ```
 
 Create your first quantum resource:
