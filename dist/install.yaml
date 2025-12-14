@@ -834,7 +834,9 @@ spec:
             properties:
               algorithm:
                 default: Dilithium2
-                description: Algorithm selects the signature scheme to use.
+                description: |-
+                  Algorithm selects the signature scheme to use.
+                  Supports liboqs names (Dilithium2/3/5, Falcon512/1024, SPHINCS+) and NIST names (ML-DSA-44/65/87, SLH-DSA-SHA2-128f)
                 enum:
                 - Dilithium2
                 - Dilithium3
@@ -842,6 +844,14 @@ spec:
                 - Falcon512
                 - Falcon1024
                 - SPHINCS+-SHA2-128f-simple
+                - ML-DSA-44
+                - ML-DSA-65
+                - ML-DSA-87
+                - SLH-DSA-SHA2-128f
+                - SLH-DSA-SHA2-256f
+                - CRYSTALS-Dilithium2
+                - CRYSTALS-Dilithium3
+                - CRYSTALS-Dilithium5
                 type: string
               secretName:
                 description: Optional name of the Secret to store public/private keys.
@@ -915,8 +925,8 @@ spec:
     - jsonPath: .spec.algorithm
       name: Algorithm
       type: string
-    - jsonPath: .status.signature
-      name: Signature
+    - jsonPath: .status.messageFingerprint
+      name: Fingerprint
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -949,7 +959,9 @@ spec:
             properties:
               algorithm:
                 default: Dilithium2
-                description: Algorithm selects the signature scheme to use.
+                description: |-
+                  Algorithm selects the signature scheme to use.
+                  Supports liboqs names (Dilithium2/3/5, Falcon512/1024, SPHINCS+) and NIST names (ML-DSA-44/65/87, SLH-DSA-SHA2-128f)
                 enum:
                 - Dilithium2
                 - Dilithium3
@@ -957,6 +969,14 @@ spec:
                 - Falcon512
                 - Falcon1024
                 - SPHINCS+-SHA2-128f-simple
+                - ML-DSA-44
+                - ML-DSA-65
+                - ML-DSA-87
+                - SLH-DSA-SHA2-128f
+                - SLH-DSA-SHA2-256f
+                - CRYSTALS-Dilithium2
+                - CRYSTALS-Dilithium3
+                - CRYSTALS-Dilithium5
                 type: string
               messageKey:
                 description: 'MessageKey selects the key in MessageRef data that contains
@@ -1077,6 +1097,9 @@ spec:
       type: string
     - jsonPath: .status.verified
       name: Verified
+      type: boolean
+    - jsonPath: .status.messageFingerprint
+      name: Fingerprint
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -1109,7 +1132,9 @@ spec:
             properties:
               algorithm:
                 default: Dilithium2
-                description: Algorithm selects the signature scheme to use.
+                description: |-
+                  Algorithm selects the signature scheme to use.
+                  Supports liboqs names (Dilithium2/3/5, Falcon512/1024, SPHINCS+) and NIST names (ML-DSA-44/65/87, SLH-DSA-SHA2-128f)
                 enum:
                 - Dilithium2
                 - Dilithium3
@@ -1117,6 +1142,14 @@ spec:
                 - Falcon512
                 - Falcon1024
                 - SPHINCS+-SHA2-128f-simple
+                - ML-DSA-44
+                - ML-DSA-65
+                - ML-DSA-87
+                - SLH-DSA-SHA2-128f
+                - SLH-DSA-SHA2-256f
+                - CRYSTALS-Dilithium2
+                - CRYSTALS-Dilithium3
+                - CRYSTALS-Dilithium5
                 type: string
               messageKey:
                 description: 'MessageKey selects the key in MessageRef data that contains
