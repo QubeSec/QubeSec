@@ -54,13 +54,32 @@ spec:
               QuantumSignatureKeyPair
             properties:
               algorithm:
-                description: Foo is an example field of QuantumSignatureKeyPair. Edit
-                  quantumsignaturekeypair_types.go to remove/update
+                default: Dilithium2
+                description: |-
+                  Algorithm selects the signature scheme to use.
+                  Supports liboqs names (Dilithium2/3/5, Falcon512/1024, SPHINCS+) and NIST names (ML-DSA-44/65/87, SLH-DSA-SHA2-128f)
+                enum:
+                - Dilithium2
+                - Dilithium3
+                - Dilithium5
+                - Falcon512
+                - Falcon1024
+                - SPHINCS+-SHA2-128f-simple
+                - ML-DSA-44
+                - ML-DSA-65
+                - ML-DSA-87
+                - SLH-DSA-SHA2-128f
+                - SLH-DSA-SHA2-256f
+                - CRYSTALS-Dilithium2
+                - CRYSTALS-Dilithium3
+                - CRYSTALS-Dilithium5
                 type: string
               secretName:
                 description: Optional name of the Secret to store public/private keys.
                   Defaults to resource name.
                 type: string
+            required:
+            - algorithm
             type: object
           status:
             description: QuantumSignatureKeyPairStatus defines the observed state

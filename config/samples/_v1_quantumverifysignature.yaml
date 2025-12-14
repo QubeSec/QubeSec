@@ -1,0 +1,17 @@
+apiVersion: qubesec.io/v1
+kind: QuantumVerifySignature
+metadata:
+  name: verify-signature-example
+spec:
+  algorithm: ML-DSA-87
+  publicKeyRef:
+    name: quantumsignaturekeypair-sample
+    namespace: default
+  messageRef:
+    name: sample-message
+    namespace: default
+  signatureRef:
+    name: signed-message-output
+    namespace: default
+  messageKey: message
+  signatureKey: signature

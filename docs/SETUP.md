@@ -185,7 +185,7 @@ kubectl delete -f https://raw.githubusercontent.com/QubeSec/QubeSec/main/dist/in
 kubectl apply -k config/samples/
 
 # Verify resource creation
-kubectl get qkkp,qes,qds,qdk,qskp,qc,qrn
+kubectl get qkkp,qes,qds,qdk,qskp,qc,qrn,qsm,qvs
 
 # Clean up samples
 kubectl delete -k config/samples/

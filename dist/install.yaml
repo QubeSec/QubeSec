@@ -833,13 +833,22 @@ spec:
               QuantumSignatureKeyPair
             properties:
               algorithm:
-                description: Foo is an example field of QuantumSignatureKeyPair. Edit
-                  quantumsignaturekeypair_types.go to remove/update
+                default: Dilithium2
+                description: Algorithm selects the signature scheme to use.
+                enum:
+                - Dilithium2
+                - Dilithium3
+                - Dilithium5
+                - Falcon512
+                - Falcon1024
+                - SPHINCS+-SHA2-128f-simple
                 type: string
               secretName:
                 description: Optional name of the Secret to store public/private keys.
                   Defaults to resource name.
                 type: string
+            required:
+            - algorithm
             type: object
           status:
             description: QuantumSignatureKeyPairStatus defines the observed state
@@ -876,6 +885,325 @@ spec:
                 - Failed
                 type: string
             type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: quantumsignmessages.qubesec.io
+spec:
+  group: qubesec.io
+  names:
+    kind: QuantumSignMessage
+    listKind: QuantumSignMessageList
+    plural: quantumsignmessages
+    shortNames:
+    - qsm
+    singular: quantumsignmessage
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    - jsonPath: .spec.algorithm
+      name: Algorithm
+      type: string
+    - jsonPath: .status.signature
+      name: Signature
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: QuantumSignMessage signs message bytes using a referenced quantum-safe
+          key pair.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: QuantumSignMessageSpec defines the desired state of QuantumSignMessage.
+            properties:
+              algorithm:
+                default: Dilithium2
+                description: Algorithm selects the signature scheme to use.
+                enum:
+                - Dilithium2
+                - Dilithium3
+                - Dilithium5
+                - Falcon512
+                - Falcon1024
+                - SPHINCS+-SHA2-128f-simple
+                type: string
+              messageKey:
+                description: 'MessageKey selects the key in MessageRef data that contains
+                  the message bytes (default: "message").'
+                type: string
+              messageRef:
+                description: 'MessageRef points to a Secret that holds the message
+                  bytes under messageKey (default: "message").'
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              outputSecretName:
+                description: |-
+                  OutputSecretName optionally overrides the Secret name where the signature is stored.
+                  Defaults to <resource-name>-signature when empty.
+                type: string
+              privateKeyRef:
+                description: PrivateKeyRef points to a QuantumSignatureKeyPair secret
+                  containing the private key.
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              signatureKey:
+                description: 'SignatureKey selects the key used to write the signature
+                  into the output Secret (default: "signature").'
+                type: string
+            required:
+            - algorithm
+            - messageRef
+            - privateKeyRef
+            type: object
+          status:
+            description: QuantumSignMessageStatus defines the observed state of QuantumSignMessage.
+            properties:
+              error:
+                description: Error captures the failure reason.
+                type: string
+              lastUpdateTime:
+                description: LastUpdateTime is when the signature was last produced.
+                format: date-time
+                type: string
+              messageFingerprint:
+                description: MessageFingerprint is the SHA256 fingerprint of the signed
+                  message (first 10 hex chars).
+                type: string
+              signature:
+                description: Signature contains the base64-encoded signature (also
+                  written to the output Secret).
+                type: string
+              signatureReference:
+                description: SignatureReference points to the Secret containing the
+                  signature output.
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              status:
+                enum:
+                - Pending
+                - Success
+                - Failed
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: quantumverifysignatures.qubesec.io
+spec:
+  group: qubesec.io
+  names:
+    kind: QuantumVerifySignature
+    listKind: QuantumVerifySignatureList
+    plural: quantumverifysignatures
+    shortNames:
+    - qvs
+    singular: quantumverifysignature
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    - jsonPath: .spec.algorithm
+      name: Algorithm
+      type: string
+    - jsonPath: .status.verified
+      name: Verified
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: QuantumVerifySignature verifies a signature for message bytes
+          using a referenced quantum-safe public key.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: QuantumVerifySignatureSpec defines the desired state of QuantumVerifySignature.
+            properties:
+              algorithm:
+                default: Dilithium2
+                description: Algorithm selects the signature scheme to use.
+                enum:
+                - Dilithium2
+                - Dilithium3
+                - Dilithium5
+                - Falcon512
+                - Falcon1024
+                - SPHINCS+-SHA2-128f-simple
+                type: string
+              messageKey:
+                description: 'MessageKey selects the key in MessageRef data that contains
+                  the message bytes (default: "message").'
+                type: string
+              messageRef:
+                description: 'MessageRef points to a Secret that holds the message
+                  bytes under messageKey (default: "message").'
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              publicKeyRef:
+                description: PublicKeyRef points to a QuantumSignatureKeyPair secret
+                  containing the public key.
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              signatureKey:
+                description: 'SignatureKey selects the key that contains the signature
+                  bytes (default: "signature").'
+                type: string
+              signatureRef:
+                description: 'SignatureRef points to a Secret that holds the signature
+                  bytes under signatureKey (default: "signature").'
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+            required:
+            - algorithm
+            - messageRef
+            - publicKeyRef
+            - signatureRef
+            type: object
+          status:
+            description: QuantumVerifySignatureStatus defines the observed state of
+              QuantumVerifySignature.
+            properties:
+              error:
+                description: Error captures the failure reason.
+                type: string
+              lastCheckedTime:
+                description: LastCheckedTime captures when the last verification attempt
+                  completed.
+                format: date-time
+                type: string
+              messageFingerprint:
+                description: MessageFingerprint is the SHA256 fingerprint of the verified
+                  message (first 10 hex chars).
+                type: string
+              status:
+                enum:
+                - Pending
+                - Valid
+                - Invalid
+                - Failed
+                type: string
+              verified:
+                description: Verified is true when the signature is valid for the
+                  provided message.
+                type: boolean
+            type: object
+        required:
+        - spec
         type: object
     served: true
     storage: true
@@ -967,6 +1295,8 @@ rules:
   - quantumkemkeypairs
   - quantumrandomnumbers
   - quantumsignaturekeypairs
+  - quantumsignmessages
+  - quantumverifysignatures
   verbs:
   - create
   - delete
@@ -985,6 +1315,8 @@ rules:
   - quantumkemkeypairs/finalizers
   - quantumrandomnumbers/finalizers
   - quantumsignaturekeypairs/finalizers
+  - quantumsignmessages/finalizers
+  - quantumverifysignatures/finalizers
   verbs:
   - update
 - apiGroups:
@@ -997,6 +1329,8 @@ rules:
   - quantumkemkeypairs/status
   - quantumrandomnumbers/status
   - quantumsignaturekeypairs/status
+  - quantumsignmessages/status
+  - quantumverifysignatures/status
   verbs:
   - get
   - patch

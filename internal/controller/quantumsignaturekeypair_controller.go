@@ -18,6 +18,9 @@ package controller
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -88,6 +91,10 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 	// Setup logger
 	log := log.FromContext(ctx)
 
+	if quantumSignatureKeyPair.Spec.Algorithm == "" {
+		return fmt.Errorf("spec.algorithm is required")
+	}
+
 	secretName := quantumSignatureKeyPair.Spec.SecretName
 	if secretName == "" {
 		secretName = quantumSignatureKeyPair.Name
@@ -107,9 +114,25 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 		return err
 	}
 
-	// If Secret already exists, update status to Success
+	// If Secret already exists, verify contents and update status
 	if err == nil {
-		if quantumSignatureKeyPair.Status.Status != "Success" {
+		publicKey, hasPub := secret.Data["public-key"]
+		_, hasPriv := secret.Data["private-key"]
+		if !hasPub || !hasPriv {
+			quantumSignatureKeyPair.Status.Status = "Failed"
+			quantumSignatureKeyPair.Status.Error = fmt.Sprintf("existing secret %s missing public-key/private-key", secretName)
+			_ = r.Status().Update(ctx, quantumSignatureKeyPair)
+			return fmt.Errorf("existing secret %s missing public-key/private-key", secretName)
+		}
+
+		fingerprint := sha256.Sum256(publicKey)
+
+		if quantumSignatureKeyPair.Status.Status != "Success" || quantumSignatureKeyPair.Status.PublicKeyFingerprint == "" {
+			if err := r.Get(ctx, client.ObjectKey{Namespace: quantumSignatureKeyPair.Namespace, Name: quantumSignatureKeyPair.Name}, quantumSignatureKeyPair); err != nil {
+				log.Error(err, "Failed to re-fetch QuantumSignatureKeyPair before status update")
+				return client.IgnoreNotFound(err)
+			}
+
 			now := metav1.Now()
 			quantumSignatureKeyPair.Status.Status = "Success"
 			quantumSignatureKeyPair.Status.KeyPairReference = &qubeseciov1.ObjectReference{
@@ -117,15 +140,25 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 				Namespace: quantumSignatureKeyPair.Namespace,
 			}
 			quantumSignatureKeyPair.Status.LastUpdateTime = &now
+			quantumSignatureKeyPair.Status.PublicKeyFingerprint = hex.EncodeToString(fingerprint[:])[:10]
 			quantumSignatureKeyPair.Status.Error = ""
-			_ = r.Status().Update(ctx, quantumSignatureKeyPair)
+			if statusErr := r.Status().Update(ctx, quantumSignatureKeyPair); statusErr != nil {
+				log.Error(statusErr, "Failed to update status for existing secret")
+				return statusErr
+			}
 		}
 		return nil
 	}
 
 	// If Secret doesn't exist, create it
-	// Generate key pair
-	publicKey, privateKey := keypair.GenerateSIGKeyPair(quantumSignatureKeyPair.Spec.Algorithm, ctx)
+	publicKey, privateKey, genErr := keypair.GenerateSIGKeyPair(quantumSignatureKeyPair.Spec.Algorithm, ctx)
+	if genErr != nil {
+		log.Error(genErr, "Failed to generate signature keypair")
+		quantumSignatureKeyPair.Status.Status = "Failed"
+		quantumSignatureKeyPair.Status.Error = genErr.Error()
+		_ = r.Status().Update(ctx, quantumSignatureKeyPair)
+		return genErr
+	}
 
 	// Create Secret object
 	newSecret := &corev1.Secret{
@@ -150,9 +183,14 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 	err = r.Create(ctx, newSecret)
 	if err != nil {
 		log.Error(err, "Failed to Create Secret")
+		quantumSignatureKeyPair.Status.Status = "Failed"
+		quantumSignatureKeyPair.Status.Error = err.Error()
+		_ = r.Status().Update(ctx, quantumSignatureKeyPair)
 		return err
 	}
 	log.Info("Created Secret")
+
+	fingerprint := sha256.Sum256([]byte(publicKey))
 
 	// Update status to Success
 	now := metav1.Now()
@@ -161,9 +199,13 @@ func (r *QuantumSignatureKeyPairReconciler) CreateOrUpdateSecret(quantumSignatur
 		Name:      secretName,
 		Namespace: quantumSignatureKeyPair.Namespace,
 	}
+	quantumSignatureKeyPair.Status.PublicKeyFingerprint = hex.EncodeToString(fingerprint[:])[:10]
 	quantumSignatureKeyPair.Status.LastUpdateTime = &now
 	quantumSignatureKeyPair.Status.Error = ""
-	_ = r.Status().Update(ctx, quantumSignatureKeyPair)
+	if statusErr := r.Status().Update(ctx, quantumSignatureKeyPair); statusErr != nil {
+		log.Error(statusErr, "Failed to update status")
+		return statusErr
+	}
 
 	return nil
 }

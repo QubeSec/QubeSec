@@ -26,6 +26,8 @@ rules:
   - quantumkemkeypairs
   - quantumrandomnumbers
   - quantumsignaturekeypairs
+  - quantumsignmessages
+  - quantumverifysignatures
   verbs:
   - create
   - delete
@@ -44,6 +46,8 @@ rules:
   - quantumkemkeypairs/finalizers
   - quantumrandomnumbers/finalizers
   - quantumsignaturekeypairs/finalizers
+  - quantumsignmessages/finalizers
+  - quantumverifysignatures/finalizers
   verbs:
   - update
 - apiGroups:
@@ -56,6 +60,8 @@ rules:
   - quantumkemkeypairs/status
   - quantumrandomnumbers/status
   - quantumsignaturekeypairs/status
+  - quantumsignmessages/status
+  - quantumverifysignatures/status
   verbs:
   - get
   - patch

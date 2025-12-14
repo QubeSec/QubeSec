@@ -8,3 +8,5 @@ resources:
 - _v1_quantumdecapsulatesecret.yaml
 - _v1_quantumderivedkey-from-encapsulated.yaml
 - _v1_quantumderivedkey-from-decapsulated.yaml
+- _v1_quantumsignmessage.yaml
+- _v1_quantumverifysignature.yaml

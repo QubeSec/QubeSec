@@ -124,8 +124,14 @@ func (r *QuantumKEMKeyPairReconciler) CreateOrUpdateSecret(quantumKEMKeyPair *qu
 	}
 
 	// If Secret doesn't exist, create it
-	// Generate key pair
-	publicKey, privateKey := keypair.GenerateKEMKeyPair(quantumKEMKeyPair.Spec.Algorithm, ctx)
+	publicKey, privateKey, genErr := keypair.GenerateKEMKeyPair(quantumKEMKeyPair.Spec.Algorithm, ctx)
+	if genErr != nil {
+		log.Error(genErr, "Failed to generate KEM keypair")
+		quantumKEMKeyPair.Status.Status = "Failed"
+		quantumKEMKeyPair.Status.Error = genErr.Error()
+		_ = r.Status().Update(ctx, quantumKEMKeyPair)
+		return genErr
+	}
 
 	// Create Secret object
 	newSecret := &corev1.Secret{

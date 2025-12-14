@@ -1,0 +1,170 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: quantumsignmessages.qubesec.io
+spec:
+  group: qubesec.io
+  names:
+    kind: QuantumSignMessage
+    listKind: QuantumSignMessageList
+    plural: quantumsignmessages
+    shortNames:
+    - qsm
+    singular: quantumsignmessage
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    - jsonPath: .spec.algorithm
+      name: Algorithm
+      type: string
+    - jsonPath: .status.messageFingerprint
+      name: Fingerprint
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: QuantumSignMessage signs message bytes using a referenced quantum-safe
+          key pair.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: QuantumSignMessageSpec defines the desired state of QuantumSignMessage.
+            properties:
+              algorithm:
+                default: Dilithium2
+                description: |-
+                  Algorithm selects the signature scheme to use.
+                  Supports liboqs names (Dilithium2/3/5, Falcon512/1024, SPHINCS+) and NIST names (ML-DSA-44/65/87, SLH-DSA-SHA2-128f)
+                enum:
+                - Dilithium2
+                - Dilithium3
+                - Dilithium5
+                - Falcon512
+                - Falcon1024
+                - SPHINCS+-SHA2-128f-simple
+                - ML-DSA-44
+                - ML-DSA-65
+                - ML-DSA-87
+                - SLH-DSA-SHA2-128f
+                - SLH-DSA-SHA2-256f
+                - CRYSTALS-Dilithium2
+                - CRYSTALS-Dilithium3
+                - CRYSTALS-Dilithium5
+                type: string
+              messageKey:
+                description: 'MessageKey selects the key in MessageRef data that contains
+                  the message bytes (default: "message").'
+                type: string
+              messageRef:
+                description: 'MessageRef points to a Secret that holds the message
+                  bytes under messageKey (default: "message").'
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              outputSecretName:
+                description: |-
+                  OutputSecretName optionally overrides the Secret name where the signature is stored.
+                  Defaults to <resource-name>-signature when empty.
+                type: string
+              privateKeyRef:
+                description: PrivateKeyRef points to a QuantumSignatureKeyPair secret
+                  containing the private key.
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              signatureKey:
+                description: 'SignatureKey selects the key used to write the signature
+                  into the output Secret (default: "signature").'
+                type: string
+            required:
+            - algorithm
+            - messageRef
+            - privateKeyRef
+            type: object
+          status:
+            description: QuantumSignMessageStatus defines the observed state of QuantumSignMessage.
+            properties:
+              error:
+                description: Error captures the failure reason.
+                type: string
+              lastUpdateTime:
+                description: LastUpdateTime is when the signature was last produced.
+                format: date-time
+                type: string
+              messageFingerprint:
+                description: MessageFingerprint is the SHA256 fingerprint of the signed
+                  message (first 10 hex chars).
+                type: string
+              signature:
+                description: Signature contains the base64-encoded signature (also
+                  written to the output Secret).
+                type: string
+              signatureReference:
+                description: SignatureReference points to the Secret containing the
+                  signature output.
+                properties:
+                  name:
+                    description: Name of the referent
+                    type: string
+                  namespace:
+                    description: Namespace of the referent; empty defaults to current
+                      namespace
+                    type: string
+                required:
+                - name
+                type: object
+              status:
+                enum:
+                - Pending
+                - Success
+                - Failed
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

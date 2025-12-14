@@ -25,12 +25,15 @@ import (
 
 // QuantumSignatureKeyPairSpec defines the desired state of QuantumSignatureKeyPair
 type QuantumSignatureKeyPairSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Algorithm selects the signature scheme to use.
+	// Supports liboqs names (Dilithium2/3/5, Falcon512/1024, SPHINCS+) and NIST names (ML-DSA-44/65/87, SLH-DSA-SHA2-128f)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Enum=Dilithium2;Dilithium3;Dilithium5;Falcon512;Falcon1024;SPHINCS+-SHA2-128f-simple;ML-DSA-44;ML-DSA-65;ML-DSA-87;SLH-DSA-SHA2-128f;SLH-DSA-SHA2-256f;CRYSTALS-Dilithium2;CRYSTALS-Dilithium3;CRYSTALS-Dilithium5
+	// +kubebuilder:default=Dilithium2
+	Algorithm string `json:"algorithm"`
 
-	// Foo is an example field of QuantumSignatureKeyPair. Edit quantumsignaturekeypair_types.go to remove/update
-	Algorithm string `json:"algorithm,omitempty"`
 	// Optional name of the Secret to store public/private keys. Defaults to resource name.
+	// +kubebuilder:validation:Optional
 	SecretName string `json:"secretName,omitempty"`
 }
 

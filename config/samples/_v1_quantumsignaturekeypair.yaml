@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/created-by: qubesec
   name: quantumsignaturekeypair-sample
 spec:
+  # algorithm: Dilithium5
   algorithm: ML-DSA-87
   # Optional custom secret name for the generated key pair
   secretName: quantumsignaturekeypair-sample-keys

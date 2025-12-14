@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-func GenerateKEMKeyPair(algorithm string, ctx context.Context) (string, string) {
+func GenerateKEMKeyPair(algorithm string, ctx context.Context) (string, string, error) {
 	log := log.FromContext(ctx)
 
 	quantumKeys := oqs.KeyEncapsulation{}
@@ -19,21 +19,28 @@ func GenerateKEMKeyPair(algorithm string, ctx context.Context) (string, string) 
 	err := quantumKeys.Init(algorithm, nil)
 	if err != nil {
 		log.Error(err, "Failed to initialize liboqs-go")
+		return "", "", err
 	}
 
 	// Generate key pair
 	quantumPublicKey, err := quantumKeys.GenerateKeyPair()
 	if err != nil {
 		log.Error(err, "Failed to generate key pair")
+		return "", "", err
 	}
 
 	// Export private key
 	quantumPrivateKey := quantumKeys.ExportSecretKey()
 
-	return generatePEMBlock(quantumPublicKey, quantumPrivateKey, algorithm, ctx)
+	publicKeyPEM, privateKeyPEM, err := generatePEMBlock(quantumPublicKey, quantumPrivateKey, algorithm, ctx)
+	if err != nil {
+		return "", "", err
+	}
+
+	return publicKeyPEM, privateKeyPEM, nil
 }
 
-func GenerateSIGKeyPair(algorithm string, ctx context.Context) (string, string) {
+func GenerateSIGKeyPair(algorithm string, ctx context.Context) (string, string, error) {
 	log := log.FromContext(ctx)
 
 	quantumKeys := oqs.Signature{}
@@ -43,21 +50,28 @@ func GenerateSIGKeyPair(algorithm string, ctx context.Context) (string, string) 
 	err := quantumKeys.Init(algorithm, nil)
 	if err != nil {
 		log.Error(err, "Failed to initialize liboqs-go")
+		return "", "", err
 	}
 
 	// Generate key pair
 	quantumPublicKey, err := quantumKeys.GenerateKeyPair()
 	if err != nil {
 		log.Error(err, "Failed to generate key pair")
+		return "", "", err
 	}
 
 	// Export private key
 	quantumPrivateKey := quantumKeys.ExportSecretKey()
 
-	return generatePEMBlock(quantumPublicKey, quantumPrivateKey, algorithm, ctx)
+	publicKeyPEM, privateKeyPEM, err := generatePEMBlock(quantumPublicKey, quantumPrivateKey, algorithm, ctx)
+	if err != nil {
+		return "", "", err
+	}
+
+	return publicKeyPEM, privateKeyPEM, nil
 }
 
-func generatePEMBlock(publicKey []byte, privateKey []byte, algorithm string, ctx context.Context) (string, string) {
+func generatePEMBlock(publicKey []byte, privateKey []byte, algorithm string, ctx context.Context) (string, string, error) {
 	log := log.FromContext(ctx)
 
 	// Generate PEM block
@@ -71,6 +85,7 @@ func generatePEMBlock(publicKey []byte, privateKey []byte, algorithm string, ctx
 	err := pem.Encode(&publicKeyRow, publicKeyBlock)
 	if err != nil {
 		log.Error(err, "Failed to encode public key")
+		return "", "", err
 	}
 
 	// Generate PEM block
@@ -84,8 +99,9 @@ func generatePEMBlock(publicKey []byte, privateKey []byte, algorithm string, ctx
 	err = pem.Encode(&privateKeyRow, privateKeyBlock)
 	if err != nil {
 		log.Error(err, "Failed to encode private key")
+		return "", "", err
 	}
 
 	// Return PEM encoded keys as strings
-	return publicKeyRow.String(), privateKeyRow.String()
+	return publicKeyRow.String(), privateKeyRow.String(), nil
 }

@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sample-message
+data:
+  message: "SGVsbG8sIGl0J3MgYSBRdWFudHVtLXNhZmUgbWVzc2FnZSE="  # base64 encoded: "Hello, it's a Quantum-safe message!"
+---
+apiVersion: qubesec.io/v1
+kind: QuantumSignMessage
+metadata:
+  name: sign-message-example
+spec:
+  algorithm: ML-DSA-87
+  privateKeyRef:
+    name: quantumsignaturekeypair-sample
+    namespace: default
+  messageRef:
+    name: sample-message
+    namespace: default
+  outputSecretName: signed-message-output
+  messageKey: message
+  signatureKey: signature
