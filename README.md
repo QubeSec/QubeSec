@@ -63,13 +63,13 @@ This automates installation of liboqs, OpenSSL with oqs-provider, and Go binding
 
 ### Manual Setup
 
-For step-by-step instructions, environment variable configuration, and command reference, see [SETUP.md](SETUP.md).
+For step-by-step instructions, environment variable configuration, and command reference, see [SETUP.md](docs/SETUP.md).
 
 ## Infrastructure Setup
 
 ## Development
 
-See [SETUP.md](SETUP.md) for:
+See [SETUP.md](docs/SETUP.md) for:
 - Kubebuilder initialization and API generation
 - CRD installation and testing
 - Local development and debugging
@@ -77,5 +77,7 @@ See [SETUP.md](SETUP.md) for:
 
 ## Documentation
 
-- [SETUP.md](SETUP.md) - Complete installation and operation guide
+- [SETUP.md](docs/SETUP.md) - Complete installation and operation guide
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System architecture and design patterns
+- [OPENSSL.md](docs/OPENSSL.md) - OpenSSL command reference for quantum-safe operations
 - [api/v1/](api/v1/) - Custom Resource Definitions

@@ -104,8 +104,6 @@ cd ansible
 ansible-playbook setup-liboqs.yml -i hosts.yml
 ```
 
-See [Ansible Architecture](ansible/ARCHITECTURE.md) for detailed role descriptions.
-
 ### Manual Setup
 
 #### Prerequisites
