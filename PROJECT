@@ -52,4 +52,44 @@ resources:
   kind: QuantumSharedSecret
   path: github.com/QubeSec/QubeSec/api/v1
   version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: qubesec.io
+  kind: QuantumEncapsulateSecret
+  path: github.com/QubeSec/QubeSec/api/v1
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: qubesec.io
+  kind: QuantumDecapsulateSecret
+  path: github.com/QubeSec/QubeSec/api/v1
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: qubesec.io
+  kind: QuantumDerivedKey
+  path: github.com/QubeSec/QubeSec/api/v1
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: qubesec.io
+  kind: QuantumSignMessage
+  path: github.com/QubeSec/QubeSec/api/v1
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: qubesec.io
+  kind: QuantumVerifySignature
+  path: github.com/QubeSec/QubeSec/api/v1
+  version: v1
 version: "3"
