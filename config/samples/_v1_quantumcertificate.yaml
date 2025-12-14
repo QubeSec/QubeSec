@@ -14,4 +14,4 @@ spec:
   domain: "example.com"
   days: 365
   # Optional custom secret name for the certificate (tls.crt/tls.key)
-  secretName: quantumcertificate-sample-tls
+  secretName: quantumcertificate-sample-cert

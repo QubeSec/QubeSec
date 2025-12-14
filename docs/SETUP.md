@@ -185,6 +185,9 @@ kubectl apply -k config/samples/
 # Verify resource creation
 kubectl get qkkp,qes,qds,qdk,qskp,qc,qrn,qsm,qvs
 
+# View created secrets
+kubectl get secrets
+
 # Clean up samples
 kubectl delete -k config/samples/
 ```
@@ -208,7 +211,7 @@ kubectl get qes quantumencapsulatesecret-sample
 ```
 
 This uses the public key to encapsulate and produces:
-- A **shared secret** stored in Kubernetes Secret `encapsulated-shared-secret`
+- A **shared secret** stored in Kubernetes Secret `quantumencapsulatesecret-sample-sharedsecret`
 - A **ciphertext** stored in the status field (hex-encoded)
 
 #### Step 3: Retrieve and Use the Ciphertext
@@ -238,15 +241,15 @@ The controller will:
 1. Retrieve the private key from the referenced QuantumKEMKeyPair
 2. Decode the hex ciphertext from the spec
 3. Perform KEM decapsulation to recover the shared secret
-4. Store the recovered secret in Kubernetes Secret `decapsulated-shared-secret`
+4. Store the recovered secret in Kubernetes Secret `quantumdecapsulatesecret-sample-sharedsecret`
 
 #### Step 5: Verify Encapsulation/Decapsulation are Correct
 ```bash
 # Get shared secret from encapsulation
-ENCAP_SECRET=$(kubectl get secret encapsulated-shared-secret -o jsonpath='{.data.shared-secret}' | base64 -d | xxd -p)
+ENCAP_SECRET=$(kubectl get secret quantumencapsulatesecret-sample-sharedsecret -o jsonpath='{.data.shared-secret}' | base64 -d | xxd -p)
 
 # Get shared secret from decapsulation
-DECAP_SECRET=$(kubectl get secret decapsulated-shared-secret -o jsonpath='{.data.shared-secret}' | base64 -d | xxd -p)
+DECAP_SECRET=$(kubectl get secret quantumdecapsulatesecret-sample-sharedsecret -o jsonpath='{.data.shared-secret}' | base64 -d | xxd -p)
 
 # Compare them (must be identical for correct implementation)
 if [ "$ENCAP_SECRET" = "$DECAP_SECRET" ]; then
@@ -318,7 +321,7 @@ kubectl get secret <secret-name> -o jsonpath='{.data.<key>}' | base64 -d
 
 ```bash
 # For post-quantum certificates with oqs-provider
-kubectl get secret quantumcertificate-sample-tls \
+kubectl get secret quantumcertificate-sample-cert \
   -o jsonpath='{.data.tls\.crt}' | \
   base64 -d | openssl x509 -text -noout
 ```
@@ -326,14 +329,14 @@ kubectl get secret quantumcertificate-sample-tls \
 ### Retrieve Public Key from QuantumKEMKeyPair
 
 ```bash
-kubectl get secret quantumkemkeypair-sample-keys \
+kubectl get secret quantumkemkeypair-sample-keypair \
   -o jsonpath='{.data.public-key}' | base64 -d
 ```
 
 ### Retrieve Public Key from QuantumSignatureKeyPair
 
 ```bash
-kubectl get secret quantumsignaturekeypair-sample-keys \
+kubectl get secret quantumsignaturekeypair-sample-keypair \
   -o jsonpath='{.data.public-key}' | base64 -d
 ```
 

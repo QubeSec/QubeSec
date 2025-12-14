@@ -31,4 +31,4 @@ spec:
   
   # Optional: Name of secret to store the derived key in
   # If not provided, a secret will be created with a generated name
-  secretName: derived-aes256-key-from-decapsulated
+  secretName: quantumderivedkey-from-decapsulated-aes256

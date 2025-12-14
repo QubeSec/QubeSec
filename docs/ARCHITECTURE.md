@@ -138,7 +138,7 @@ graph TB
         E["Secret: sample-message"]
         F["Fetch Private Key"]
         G["Sign with liboqs"]
-        H["Secret: signed-message-output<br/>(signature)"]
+        H["Secret: sign-message-example-signature<br/>(signature)"]
     end
     
     subgraph "Verification Phase"

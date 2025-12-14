@@ -11,7 +11,7 @@ spec:
     name: sample-message
     namespace: default
   signatureRef:
-    name: signed-message-output
+    name: sign-message-example-signature
     namespace: default
   messageKey: message
   signatureKey: signature
