@@ -40,7 +40,7 @@ The Ansible playbook automates all environment setup including liboqs, OpenSSL w
 
 ```bash
 cd ansible
-ansible-playbook setup-liboqs.yml -i hosts.yml
+ansible-playbook setup-liboqs.yml
 ```
 
 ### Manual Setup
