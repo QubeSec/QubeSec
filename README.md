@@ -18,7 +18,7 @@ QubeSec leverages [liboqs](https://github.com/open-quantum-safe/liboqs) and [Ope
 - **Key Derivation**: Generate AES-256 keys from shared secrets using HKDF-SHA256
 - **Quantum Signatures**: Sign messages and verify signatures with post-quantum algorithms (ML-DSA, SLH-DSA)
 - **Quantum Certificates**: Create X.509 certificates with post-quantum algorithms
-- **Random Number Generation**: Generate cryptographically secure random bytes
+- **Random Number Generation**: Generate cryptographically secure random bytes via liboqs (system or OpenSSL oqs-provider)
 - **Secure Secret Storage**: All keys stored as raw binary data in Kubernetes Secrets
 - **Key Fingerprinting**: SHA256 fingerprints for keys, messages, and secrets for verification without exposing material
 - **Ciphertext Bridging**: Decapsulation can pull ciphertext directly from a referenced QuantumEncapsulateSecret status
@@ -28,7 +28,6 @@ QubeSec leverages [liboqs](https://github.com/open-quantum-safe/liboqs) and [Ope
 
 - **Key Encapsulation**: Kyber512/768/1024 (ML-KEM - NIST-standardized post-quantum KEM)
 - **Digital Signatures**: Dilithium2/3/5 (ML-DSA), Falcon512/1024, SPHINCS+-SHA2 (NIST post-quantum signatures)
-- **Random Generation**: Cryptographically secure random number generation via `crypto/rand`
 
 ## Why Post-Quantum Cryptography Now?
 
