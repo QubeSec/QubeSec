@@ -12,7 +12,7 @@ spec:
   # Number of bytes to generate
   bytes: 64
   # Possible values are "system" or "OpenSSL"
-  algorithm: OpenSSL
+  provider: OpenSSL
   # openssl rand -base64 35
   # We need minimum 48 bytes for 256 bit key
   seed: 4vlsXDJD8pxXy0WNpiz10EwlVfEDy9QkObmRbR52OxRUhjY=

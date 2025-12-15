@@ -28,11 +28,14 @@ type QuantumRandomNumberSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of QuantumRandomNumber. Edit quantumrandomnumber_types.go to remove/update
-	Bytes     int    `json:"bytes,omitempty"`
-	Algorithm string `json:"algorithm,omitempty"`
-	Seed      string `json:"seed,omitempty"`
-	SeedURI   string `json:"seedURI,omitempty"`
+	// Number of bytes to generate
+	Bytes int `json:"bytes,omitempty"`
+	// Provider to use for random number generation: system or OpenSSL
+	// +kubebuilder:validation:Enum=system;OpenSSL
+	Provider string `json:"provider,omitempty"`
+	// Seed value for deterministic generation
+	Seed    string `json:"seed,omitempty"`
+	SeedURI string `json:"seedURI,omitempty"`
 	// Optional name of the Secret to store the random number. Defaults to resource name.
 	SecretName string `json:"secretName,omitempty"`
 }
@@ -52,9 +55,9 @@ type QuantumRandomNumberStatus struct {
 	// LastUpdateTime is when the random number was last generated
 	LastUpdateTime *metav1.Time `json:"lastUpdateTime,omitempty"`
 
-	Bytes     int    `json:"bytes,omitempty"`
-	Algorithm string `json:"algorithm,omitempty"`
-	Entropy   string `json:"entropy,omitempty"`
+	Bytes    int    `json:"bytes,omitempty"`
+	Provider string `json:"provider,omitempty"`
+	Entropy  string `json:"entropy,omitempty"`
 
 	// Error message if generation failed
 	Error string `json:"error,omitempty"`
@@ -65,7 +68,7 @@ type QuantumRandomNumberStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
 //+kubebuilder:printcolumn:name="Bytes",type=integer,JSONPath=`.status.bytes`
-//+kubebuilder:printcolumn:name="Algorithm",type=string,JSONPath=`.status.algorithm`
+//+kubebuilder:printcolumn:name="Provider",type=string,JSONPath=`.status.provider`
 //+kubebuilder:printcolumn:name="Entropy",type=string,JSONPath=`.status.entropy`
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 

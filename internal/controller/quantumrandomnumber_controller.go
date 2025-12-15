@@ -146,7 +146,10 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumRandomNumber
 	}
 
 	// If Secret doesn't exist, create it
-	secret, shannonEntropy := r.GenerateRandomNumberSecret(quantumRandomNumber, secretName, ctx)
+	secret, shannonEntropy, genErr := r.GenerateRandomNumberSecret(quantumRandomNumber, secretName, ctx)
+	if genErr != nil {
+		return genErr
+	}
 
 	// Create Secret
 	err = r.Create(ctx, secret)
@@ -176,12 +179,14 @@ func (r *QuantumRandomNumberReconciler) CreateOrUpdateSecret(quantumRandomNumber
 }
 
 // generate random number secret
-func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandomNumber *qubeseciov1.QuantumRandomNumber, secretName string, ctx context.Context) (*corev1.Secret, float64) {
+func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandomNumber *qubeseciov1.QuantumRandomNumber, secretName string, ctx context.Context) (*corev1.Secret, float64, error) {
 	// Setup logger
 	log := log.FromContext(ctx)
 
-	// Set algorithm for quantum random number
-	oqs.RandomBytesSwitchAlgorithm(quantumRandomNumber.Spec.Algorithm)
+	// Set provider for quantum random number; fail if switching fails
+	if err := oqs.RandomBytesSwitchAlgorithm(quantumRandomNumber.Spec.Provider); err != nil {
+		return nil, 0, err
+	}
 
 	// Generate quantum random number
 	randomNumber := oqs.RandomBytes(quantumRandomNumber.Spec.Bytes)
@@ -206,7 +211,7 @@ func (r *QuantumRandomNumberReconciler) GenerateRandomNumberSecret(quantumRandom
 		log.Error(err, "Failed to Set Controller Reference")
 	}
 
-	return secret, shannonEntropy
+	return secret, shannonEntropy, nil
 }
 
 // Update Status of QuantumRandomNumber
@@ -218,7 +223,7 @@ func (r *QuantumRandomNumberReconciler) UpdateStatus(quantumrandomnumber *qubese
 	now := metav1.Now()
 	quantumrandomnumber.Status.Status = "Success"
 	quantumrandomnumber.Status.Bytes = quantumrandomnumber.Spec.Bytes
-	quantumrandomnumber.Status.Algorithm = quantumrandomnumber.Spec.Algorithm
+	quantumrandomnumber.Status.Provider = quantumrandomnumber.Spec.Provider
 	quantumrandomnumber.Status.Entropy = fmt.Sprintf("%.12f", shannonEntropy)
 	quantumrandomnumber.Status.LastUpdateTime = &now
 	quantumrandomnumber.Status.Error = ""
@@ -236,18 +241,13 @@ func (r *QuantumRandomNumberReconciler) applyDefaults(qrng *qubeseciov1.QuantumR
 	if qrng.Spec.Bytes == 0 {
 		qrng.Spec.Bytes = 32
 	}
-	if qrng.Spec.Algorithm == "" {
-		qrng.Spec.Algorithm = "system"
+	if qrng.Spec.Provider == "" {
+		qrng.Spec.Provider = "system"
 	}
 }
 
 // validateQuantumRandomNumber validates the QuantumRandomNumber resource
 func (r *QuantumRandomNumberReconciler) validateQuantumRandomNumber(qrng *qubeseciov1.QuantumRandomNumber) error {
-	// Validate name length (max 52 characters for DNS compatibility)
-	if len(qrng.ObjectMeta.Name) > 52 {
-		return fmt.Errorf("name must be no more than 52 characters, got %d", len(qrng.ObjectMeta.Name))
-	}
-
 	// Validate seed
 	if err := r.validateSeed(qrng); err != nil {
 		return err

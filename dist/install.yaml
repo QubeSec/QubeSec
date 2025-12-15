@@ -684,8 +684,8 @@ spec:
     - jsonPath: .status.bytes
       name: Bytes
       type: integer
-    - jsonPath: .status.algorithm
-      name: Algorithm
+    - jsonPath: .status.provider
+      name: Provider
       type: string
     - jsonPath: .status.entropy
       name: Entropy
@@ -719,17 +719,22 @@ spec:
           spec:
             description: QuantumRandomNumberSpec defines the desired state of QuantumRandomNumber
             properties:
-              algorithm:
-                type: string
               bytes:
-                description: Foo is an example field of QuantumRandomNumber. Edit
-                  quantumrandomnumber_types.go to remove/update
+                description: Number of bytes to generate
                 type: integer
+              provider:
+                description: 'Provider to use for random number generation: system
+                  or OpenSSL'
+                enum:
+                - system
+                - OpenSSL
+                type: string
               secretName:
                 description: Optional name of the Secret to store the random number.
                   Defaults to resource name.
                 type: string
               seed:
+                description: Seed value for deterministic generation
                 type: string
               seedURI:
                 type: string
@@ -737,8 +742,6 @@ spec:
           status:
             description: QuantumRandomNumberStatus defines the observed state of QuantumRandomNumber
             properties:
-              algorithm:
-                type: string
               bytes:
                 type: integer
               entropy:
@@ -749,6 +752,8 @@ spec:
               lastUpdateTime:
                 description: LastUpdateTime is when the random number was last generated
                 format: date-time
+                type: string
+              provider:
                 type: string
               randomNumberReference:
                 description: RandomNumberReference points to where the random data
