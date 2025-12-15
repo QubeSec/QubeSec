@@ -316,4 +316,6 @@ qes  = QuantumEncapsulateSecret
 qkkp = QuantumKEMKeyPair
 qrn  = QuantumRandomNumber
 qskp = QuantumSignatureKeyPair
+qsm  = QuantumSignMessage
+qvs  = QuantumVerifySignature
 ```
