@@ -1,22 +1,47 @@
+# QuantumSignMessage signs a message using a post-quantum private key.
+# The signature can be verified by anyone with the corresponding public key.
+# Note: Before running this sample, create the QuantumSignatureKeyPair first.
+#
+# Example workflow:
+#   1. Create QuantumSignatureKeyPair (see _v1_quantumsignaturekeypair.yaml)
+#   2. Create the sample-message Secret (defined below)
+#   3. Create QuantumSignMessage
+#   4. Verify with QuantumVerifySignature (see _v1_quantumverifysignature.yaml)
+
 apiVersion: v1
 kind: Secret
 metadata:
   name: sample-message
 data:
-  message: "SGVsbG8sIGl0J3MgYSBRdWFudHVtLXNhZmUgbWVzc2FnZSE="  # base64 encoded: "Hello, it's a Quantum-safe message!"
+  # message: Base64-encoded message to sign
+  # Example: "SGVsbG8sIGl0J3MgYSBRdWFudHVtLXNhZmUgbWVzc2FnZSE=" decodes to
+  # "Hello, it's a Quantum-safe message!"
+  message: "SGVsbG8sIGl0J3MgYSBRdWFudHVtLXNhZmUgbWVzc2FnZSE="
 ---
 apiVersion: qubesec.io/v1
 kind: QuantumSignMessage
 metadata:
   name: sign-message-example
 spec:
+  # algorithm: Signature algorithm to use (must match QuantumSignatureKeyPair)
   algorithm: ML-DSA-87
+  
+  # privateKeyRef: Reference to the QuantumSignatureKeyPair containing the private key
   privateKeyRef:
     name: quantumsignaturekeypair-sample
     namespace: default
+  
+  # messageRef: Reference to a Kubernetes Secret containing the message to sign
   messageRef:
     name: sample-message
     namespace: default
+  
+  # outputSecretName: Kubernetes Secret where the signature is stored
+  # Output: Secret containing the signature (hex-encoded)
   outputSecretName: sign-message-example-signature
+  
+  # messageKey: Key within the messageRef Secret containing the message data
   messageKey: message
+  
+  # signatureKey: Key within the output Secret where the signature is stored
   signatureKey: signature

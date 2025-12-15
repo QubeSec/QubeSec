@@ -1,3 +1,6 @@
+# QuantumSignatureKeyPair generates a post-quantum digital signature keypair.
+# The private key is used to sign messages, and the public key to verify signatures.
+# Uses Dilithium (ML-DSA), a NIST-standardized post-quantum signature algorithm.
 apiVersion: qubesec.io/v1
 kind: QuantumSignatureKeyPair
 metadata:
@@ -9,7 +12,11 @@ metadata:
     app.kubernetes.io/created-by: qubesec
   name: quantumsignaturekeypair-sample
 spec:
-  # algorithm: Dilithium5
+  # algorithm: The signature algorithm to use
+  # Options: ML-DSA-44, ML-DSA-65, ML-DSA-87 (default)
+  # Alternatives: Falcon512, Falcon1024, SLH-DSA-SHA2-128s, SLH-DSA-SHA2-128f, etc.
   algorithm: ML-DSA-87
-  # Optional custom secret name for the generated key pair
+  
+  # secretName: Kubernetes Secret where the generated keypair is stored
+  # The secret will contain 'public-key' and 'private-key' fields (hex-encoded)
   secretName: quantumsignaturekeypair-sample-keypair

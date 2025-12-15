@@ -1,3 +1,6 @@
+# QuantumCertificate creates an X.509 certificate signed with post-quantum algorithms.
+# Can be used for TLS/HTTPS endpoints to provide quantum-safe encryption and authentication.
+# Requires OpenSSL with oqs-provider to be properly configured.
 apiVersion: qubesec.io/v1
 kind: QuantumCertificate
 metadata:
@@ -9,9 +12,21 @@ metadata:
     app.kubernetes.io/created-by: qubesec
   name: quantumcertificate-sample
 spec:
+  # algorithm: The signature algorithm for the certificate
+  # Options: ML-DSA-87 (default), ML-DSA-44, ML-DSA-65, Falcon512, Falcon1024, etc.
+  # Alternative: "rsa" for classical RSA (not recommended for new deployments)
   algorithm: "ML-DSA-87"
-  # algorithm: "rsa"
+  
+  # domain: The domain name(s) for the certificate
+  # Used in the Subject Alternative Name (SAN) extension
+  # For multiple domains, use comma-separated list: "example.com,www.example.com"
   domain: "example.com"
+  
+  # days: Certificate validity period in days
+  # Default: 365 (1 year). Set to higher value for longer validity
   days: 365
-  # Optional custom secret name for the certificate (tls.crt/tls.key)
+  
+  # secretName: Kubernetes Secret where the certificate and key are stored
+  # Output: Secret containing 'tls.crt' (certificate) and 'tls.key' (private key)
+  # Can be used directly with Ingress resources or TLS configurations
   secretName: quantumcertificate-sample-cert

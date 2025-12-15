@@ -1,3 +1,6 @@
+# QuantumKEMKeyPair generates a post-quantum key encapsulation mechanism (KEM) keypair.
+# The public key is used for encapsulation, and the private key for decapsulation.
+# Uses Kyber (ML-KEM), a NIST-standardized post-quantum key exchange algorithm.
 apiVersion: qubesec.io/v1
 kind: QuantumKEMKeyPair
 metadata:
@@ -9,6 +12,10 @@ metadata:
     app.kubernetes.io/created-by: qubesec
   name: quantumkemkeypair-sample
 spec:
+  # algorithm: The KEM algorithm to use
+  # Options: ML-KEM-512, ML-KEM-768 (default), ML-KEM-1024
   algorithm: ML-KEM-1024
-  # Optional custom secret name for the generated key pair
+  
+  # secretName: Kubernetes Secret where the generated keypair is stored
+  # The secret will contain 'public-key' and 'private-key' fields (hex-encoded)
   secretName: quantumkemkeypair-sample-keypair

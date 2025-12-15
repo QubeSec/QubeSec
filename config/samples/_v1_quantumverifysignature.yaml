@@ -1,17 +1,41 @@
+# QuantumVerifySignature verifies a message signature using a public key.
+# The verification succeeds only if the signature was created by the corresponding private key
+# for the exact same message. This provides cryptographic proof of authenticity.
+#
+# Example workflow:
+#   1. Create QuantumSignatureKeyPair (see _v1_quantumsignaturekeypair.yaml)
+#   2. Create QuantumSignMessage (see _v1_quantumsignmessage.yaml) to generate a signature
+#   3. Create QuantumVerifySignature with references to the message and signature
+#   4. Check status.verified field for result (true/false)
+
 apiVersion: qubesec.io/v1
 kind: QuantumVerifySignature
 metadata:
   name: verify-signature-example
 spec:
+  # algorithm: Signature algorithm (must match the one used to create the signature)
   algorithm: ML-DSA-87
+  
+  # publicKeyRef: Reference to the QuantumSignatureKeyPair containing the public key
+  # The public key must correspond to the private key that created the signature
   publicKeyRef:
     name: quantumsignaturekeypair-sample
     namespace: default
+  
+  # messageRef: Reference to a Kubernetes Secret containing the original message
+  # Must be the exact same message that was signed
   messageRef:
     name: sample-message
     namespace: default
+  
+  # signatureRef: Reference to a Kubernetes Secret containing the signature
+  # This is typically the output from QuantumSignMessage
   signatureRef:
     name: sign-message-example-signature
     namespace: default
+  
+  # messageKey: Key within the messageRef Secret containing the message data
   messageKey: message
+  
+  # signatureKey: Key within the signatureRef Secret containing the signature data
   signatureKey: signature

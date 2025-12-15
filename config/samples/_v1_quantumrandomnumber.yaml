@@ -1,3 +1,5 @@
+# QuantumRandomNumber generates cryptographically secure random bytes.
+# Uses Go's crypto/rand for reliable random number generation suitable for cryptographic use.
 apiVersion: qubesec.io/v1
 kind: QuantumRandomNumber
 metadata:
@@ -9,14 +11,24 @@ metadata:
     app.kubernetes.io/created-by: qubesec
   name: quantumrandomnumber-sample
 spec:
-  # Number of bytes to generate
+  # bytes: Number of random bytes to generate
+  # Recommended: 32+ bytes for cryptographic operations, 64+ for maximum entropy
   bytes: 64
-  # Possible values are "system" or "OpenSSL"
+  
+  # provider: Source of randomness
+  # Options: "OpenSSL" (system OpenSSL), "system" (OS random device)
   provider: OpenSSL
-  # openssl rand -base64 35
-  # We need minimum 48 bytes for 256 bit key
+  
+  # seed: Optional base64-encoded seed for reproducibility (leave empty for true randomness)
+  # If set, generates deterministic random output for testing
   seed: 4vlsXDJD8pxXy0WNpiz10EwlVfEDy9QkObmRbR52OxRUhjY=
-  # We accept hex data as seed which will be converted to bytes array
-  # seedURI: http://quantum-random-seed.default.svc.cluster.local/?bytes=34
+  
+  # seedURI: Optional HTTP URI to fetch seed from remote source
+  # Example: seedURI: http://quantum-random-seed.default.svc.cluster.local/?bytes=64
+  # seedURI: http://quantum-random-seed.default.svc.cluster.local/?bytes=64
+  
+  # secretName: Kubernetes Secret where the random bytes are stored
+  # Output: Secret containing 'random-data' field (hex-encoded)
+  secretName: quantumrandomnumber-sample-random
   # Optional custom secret name for the generated random value
   secretName: quantumrandomnumber-sample-random
