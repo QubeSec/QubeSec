@@ -59,7 +59,5 @@ Governments and cybersecurity agencies worldwide have issued official guidance d
 
 ## Documentation
 
-- [SETUP.md](docs/SETUP.md) - Complete installation and operation guide
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System architecture and design patterns
-- [OPENSSL.md](docs/OPENSSL.md) - OpenSSL command reference for quantum-safe operations
-- [api/v1/](api/v1/) - Custom Resource Definitions
+- [SETUP.md](docs/SETUP.md) - Complete installation and operation guide
