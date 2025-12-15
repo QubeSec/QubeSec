@@ -21,18 +21,6 @@ spec:
   # Options: AES-256 (256-bit AES), ChaCha20 (256-bit ChaCha20), HMAC-SHA256 (256-bit HMAC)
   keyType: AES-256
   
-  # salt: Optional salt for HKDF (hex-encoded, leave empty for no salt)
-  # Increases entropy if the shared secret derivation needs additional randomness
-  salt: ""
-  
-  # info: Optional info/context string for HKDF (hex-encoded, leave empty for no info)
-  # Allows domain separation when deriving multiple keys from same shared secret
-  info: ""
-  
-  # secretName: Kubernetes Secret where the derived key is stored
-  # Output: Secret containing 'key' field (hex-encoded)
-  # Also includes fingerprint in status for verification
-  secretName: quantumderivedkey-from-encapsulated
   # If not provided, an empty salt is used for deterministic derivation
   # To get the same key every time, use the same salt (or leave empty)
   salt: ""
