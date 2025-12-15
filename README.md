@@ -36,25 +36,25 @@ Governments and cybersecurity agencies worldwide have issued official guidance d
 
 ### Government Directives & Agency Guidance
 
-1. **<a href="https://www.whitehouse.gov/wp-content/uploads/2022/11/M-23-02-M-Memo-on-Migrating-to-Post-Quantum-Cryptography.pdf" target="_blank">White House / OMB — Memorandum M-23-02</a> (November 2022)**
+1. **[White House / OMB — Memorandum M-23-02](https://www.whitehouse.gov/wp-content/uploads/2022/11/M-23-02-M-Memo-on-Migrating-to-Post-Quantum-Cryptography.pdf) (November 2022)**
    - Formal U.S. government memo instructing federal agencies to prepare and begin migration planning to post-quantum cryptography
 
-2. **<a href="https://www.cisa.gov/news-events/news/cisa-nsa-and-nist-publish-new-resource-migrating-post-quantum-cryptography" target="_blank">CISA / NSA / NIST — Quantum Readiness Resource</a> (August 2023)**
+2. **[CISA / NSA / NIST — Quantum Readiness Resource](https://www.cisa.gov/news-events/news/cisa-nsa-and-nist-publish-new-resource-migrating-post-quantum-cryptography) (August 2023)**
    - Joint playbook recommending organizations start now with inventory, vendor engagement, and roadmap planning
 
-3. **<a href="https://csrc.nist.gov/pubs/ir/8547/ipd" target="_blank">NIST — IR 8547: Transition to Post-Quantum Cryptography Standards</a> (2024)**
+3. **[NIST — IR 8547: Transition to Post-Quantum Cryptography Standards](https://csrc.nist.gov/pubs/ir/8547/ipd) (2024)**
    - Technical guidance on transitioning from vulnerable algorithms to NIST-standardized PQC algorithms
 
-4. **<a href="https://www.ncsc.gov.uk/whitepaper/next-steps-preparing-for-post-quantum-cryptography" target="_blank">UK NCSC — Next Steps in Preparing for Post-Quantum Cryptography</a> (March 2025)**
+4. **[UK NCSC — Next Steps in Preparing for Post-Quantum Cryptography](https://www.ncsc.gov.uk/whitepaper/next-steps-preparing-for-post-quantum-cryptography) (March 2025)**
    - Explicit timelines and migration steps for UK organizations with concrete deadlines
 
-5. **<a href="https://www.enisa.europa.eu/publications/post-quantum-cryptography-current-state-and-quantum-mitigation" target="_blank">ENISA — Post-Quantum Cryptography Reports</a> (2024)**
+5. **[ENISA — Post-Quantum Cryptography Reports](https://www.enisa.europa.eu/publications/post-quantum-cryptography-current-state-and-quantum-mitigation) (2024)**
    - EU-level guidance on migration planning and readiness for member states
 
-6. **<a href="https://media.defense.gov/2022/Sep/07/2003071836/-1/-1/0/CSI_CNSA_2.0_FAQ_.PDF" target="_blank">DoD / NSA — CNSA Suite 2.0</a> (September 2022)**
+6. **[DoD / NSA — CNSA Suite 2.0](https://media.defense.gov/2022/Sep/07/2003071836/-1/-1/0/CSI_CNSA_2.0_FAQ_.PDF) (September 2022)**
    - Defense-grade requirements for quantum-resistant algorithms in national security systems
 
-7. **<a href="https://www.tec.gov.in/pdf/TR/Final%20technical%20report%20on%20migration%20to%20PQC%2028-03-25.pdf" target="_blank">India TEC — Migration to Post-Quantum Cryptography</a> (March 2025)**
+7. **[India TEC — Migration to Post-Quantum Cryptography](https://www.tec.gov.in/pdf/TR/Final%20technical%20report%20on%20migration%20to%20PQC%2028-03-25.pdf) (March 2025)**
    - National technical guidance for critical infrastructure quantum-safe measures
 
 ## Documentation
