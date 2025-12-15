@@ -20,7 +20,7 @@ This single command installs:
 
 ```bash
 kubectl get pods -n qubesec-system
-kubectl get crd | grep qubesec
+kubectl api-resources | grep qubesec
 ```
 
 ### Create Your First Quantum Resources
@@ -31,67 +31,6 @@ kubectl get qrn
 ```
 
 ---
-
-## Development Setup
-
-### Initialize the Project with Kubebuilder
-
-```bash
-kubebuilder init \
-  --domain qubesec.io \
-  --repo github.com/QubeSec/QubeSec
-```
-
-### Create APIs
-
-```bash
-# QuantumRandomNumber
-kubebuilder create api \
-  --version v1 \
-  --kind QuantumRandomNumber \
-  --resource \
-  --controller
-
-kubebuilder create webhook \
-  --version v1 \
-  --kind QuantumRandomNumber \
-  --defaulting \
-  --programmatic-validation
-
-# QuantumKEMKeyPair
-kubebuilder create api \
-  --version v1 \
-  --kind QuantumKEMKeyPair \
-  --resource \
-  --controller
-
-# QuantumSignatureKeyPair
-kubebuilder create api \
-  --version v1 \
-  --kind QuantumSignatureKeyPair \
-  --resource \
-  --controller
-
-# QuantumCertificate
-kubebuilder create api \
-  --version v1 \
-  --kind QuantumCertificate \
-  --resource \
-  --controller
-
-# Future APIs (In Discussions)
-kubebuilder create api \
-  --version v1 \
-  --kind QuantumDigitalSignature \
-  --resource \
-  --controller
-
-kubebuilder create api \
-  --version v1 \
-  --kind KeyRequest \
-  --resource \
-  --controller
-```
 
 ## Environment Setup
 
