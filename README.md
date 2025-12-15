@@ -8,7 +8,7 @@ A Kubernetes operator for post-quantum cryptography providing custom resource de
 
 ## Overview
 
-QubeSec leverages [liboqs](https://github.com/open-quantum-safe/liboqs) and [OpenSSL with oqs-provider](https://github.com/open-quantum-safe/oqs-provider) to integrate post-quantum cryptographic algorithms into Kubernetes. All cryptographic operations are automated through custom controllers that orchestrate the NIST-standardized quantum-safe algorithms (Kyber, Dilithium, etc.).
+QubeSec leverages [liboqs](https://github.com/open-quantum-safe/liboqs) and [OpenSSL with oqs-provider](https://github.com/open-quantum-safe/oqs-provider) to integrate post-quantum cryptographic algorithms into Kubernetes. All cryptographic operations are automated through custom controllers that orchestrate the NIST-standardized quantum-safe algorithms (Kyber, Dilithium, etc.). For broader ecosystem context, see the [Open Quantum Safe project](https://openquantumsafe.org/) and the [Post-Quantum Cryptography Alliance](https://pqca.org/).
 
 ## Key Features
 
