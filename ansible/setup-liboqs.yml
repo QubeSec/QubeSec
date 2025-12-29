@@ -13,5 +13,5 @@
   vars:
     liboqs_version: "0.15.0"
     liboqs_go_version: "0.12.0"
-    oqs_provider_version: "0.10.0"
+    oqs_provider_version: "0.11.0"
     openssl_version: "3.6.0"
