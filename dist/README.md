@@ -47,6 +47,6 @@ kubectl delete -f https://raw.githubusercontent.com/QubeSec/QubeSec/main/dist/in
 To regenerate this file:
 
 ```bash
-export IMG=qubesec/qubesec:main
+export IMG=qubesec/qubesec:latest
 make build-installer
 ```

@@ -227,7 +227,7 @@ quantumderivedkey-from-encapsulated    d1c312b81f
 Generate a single `install.yaml` file with all CRDs and operator resources:
 
 ```bash
-export IMG=qubesec/qubesec:main
+export IMG=qubesec/qubesec:latest
 make build-installer
 # Output: dist/install.yaml
 ```

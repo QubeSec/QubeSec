@@ -1683,7 +1683,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: qubesec/qubesec:main
+        image: qubesec/qubesec:latest
         livenessProbe:
           httpGet:
             path: /healthz
